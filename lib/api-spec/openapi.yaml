@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Api
-  version: 0.1.0
+  version: 0.2.0
   description: AI Events Organizer API specification
 servers:
   - url: /api
@@ -9,8 +9,14 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: users
+    description: User management
   - name: events
     description: Event management
+  - name: guests
+    description: Guest management
   - name: categories
     description: Event categories
   - name: ai
@@ -22,7 +28,6 @@ paths:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -31,6 +36,151 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
 
+  # ─── AUTH ────────────────────────────────────────────────
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/refresh:
+    post:
+      operationId: refreshToken
+      tags: [auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenBody"
+      responses:
+        "200":
+          description: New tokens
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "204":
+          description: Logged out
+
+  # ─── USERS ───────────────────────────────────────────────
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      operationId: updateMe
+      tags: [users]
+      summary: Update current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMeBody"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all users (admin only)
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  # ─── EVENTS ──────────────────────────────────────────────
   /events:
     get:
       operationId: listEvents
@@ -103,6 +253,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DashboardSummary"
+
+  /events/analytics:
+    get:
+      operationId: getAnalytics
+      tags: [events]
+      summary: Get analytics chart data
+      responses:
+        "200":
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsData"
 
   /events/upcoming:
     get:
@@ -218,7 +381,7 @@ paths:
     post:
       operationId: rsvpToEvent
       tags: [events]
-      summary: RSVP to an event (increment attendee count)
+      summary: RSVP to an event
       parameters:
         - name: id
           in: path
@@ -239,6 +402,102 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  # ─── GUESTS ──────────────────────────────────────────────
+  /events/{eventId}/guests:
+    get:
+      operationId: listGuests
+      tags: [guests]
+      summary: List guests for an event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Guest list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Guest"
+
+    post:
+      operationId: addGuest
+      tags: [guests]
+      summary: Add a guest to an event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddGuestBody"
+      responses:
+        "201":
+          description: Guest added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Guest"
+
+  /events/{eventId}/guests/{guestId}:
+    patch:
+      operationId: updateGuest
+      tags: [guests]
+      summary: Update guest RSVP status
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: guestId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGuestBody"
+      responses:
+        "200":
+          description: Guest updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Guest"
+
+    delete:
+      operationId: removeGuest
+      tags: [guests]
+      summary: Remove a guest from an event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: guestId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Guest removed
+
+  # ─── CATEGORIES ──────────────────────────────────────────
   /categories:
     get:
       operationId: listCategories
@@ -272,6 +531,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Category"
 
+  # ─── AI ──────────────────────────────────────────────────
   /ai/generate-description:
     post:
       operationId: generateEventDescription
@@ -290,12 +550,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GeneratedDescription"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
 
   /ai/suggest-schedule:
     post:
@@ -316,6 +570,63 @@ paths:
               schema:
                 $ref: "#/components/schemas/ScheduleSuggestion"
 
+  /ai/estimate-budget:
+    post:
+      operationId: estimateBudget
+      tags: [ai]
+      summary: AI-estimate event budget breakdown
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EstimateBudgetBody"
+      responses:
+        "200":
+          description: Budget estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetEstimate"
+
+  /ai/suggest-themes:
+    post:
+      operationId: suggestThemes
+      tags: [ai]
+      summary: AI-suggest event themes and improvements
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuggestThemesBody"
+      responses:
+        "200":
+          description: Theme suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThemeSuggestions"
+
+  /ai/chat:
+    post:
+      operationId: aiChat
+      tags: [ai]
+      summary: AI event planning chat assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiChatBody"
+      responses:
+        "200":
+          description: AI response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiChatResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -334,6 +645,93 @@ components:
       required:
         - error
 
+    # ─── AUTH ──────────────────────────────────
+    RegisterBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        role:
+          type: string
+          enum: [admin, organizer, attendee]
+      required:
+        - name
+        - email
+        - password
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    RefreshTokenBody:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+      required:
+        - refreshToken
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - accessToken
+        - refreshToken
+        - user
+
+    # ─── USERS ────────────────────────────────
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [admin, organizer, attendee]
+        avatarUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - role
+        - createdAt
+
+    UpdateMeBody:
+      type: object
+      properties:
+        name:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+
+    # ─── EVENTS ───────────────────────────────
     Event:
       type: object
       properties:
@@ -362,10 +760,16 @@ components:
           type: ["integer", "null"]
         imageUrl:
           type: ["string", "null"]
+        budget:
+          type: ["number", "null"]
+        budgetUsed:
+          type: ["number", "null"]
         tags:
           type: array
           items:
             type: string
+        organizerId:
+          type: ["integer", "null"]
         createdAt:
           type: string
           format: date-time
@@ -410,6 +814,10 @@ components:
           type: ["integer", "null"]
         imageUrl:
           type: ["string", "null"]
+        budget:
+          type: ["number", "null"]
+        budgetUsed:
+          type: ["number", "null"]
         tags:
           type: array
           items:
@@ -447,11 +855,66 @@ components:
           type: ["integer", "null"]
         imageUrl:
           type: ["string", "null"]
+        budget:
+          type: ["number", "null"]
+        budgetUsed:
+          type: ["number", "null"]
         tags:
           type: array
           items:
             type: string
 
+    # ─── GUESTS ───────────────────────────────
+    Guest:
+      type: object
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        rsvpStatus:
+          type: string
+          enum: [pending, confirmed, declined, maybe]
+        note:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - eventId
+        - name
+        - email
+        - rsvpStatus
+        - createdAt
+
+    AddGuestBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        note:
+          type: ["string", "null"]
+      required:
+        - name
+        - email
+
+    UpdateGuestBody:
+      type: object
+      properties:
+        rsvpStatus:
+          type: string
+          enum: [pending, confirmed, declined, maybe]
+        note:
+          type: ["string", "null"]
+
+    # ─── CATEGORIES ───────────────────────────
     Category:
       type: object
       properties:
@@ -486,6 +949,7 @@ components:
         - color
         - icon
 
+    # ─── DASHBOARD ────────────────────────────
     DashboardSummary:
       type: object
       properties:
@@ -503,6 +967,10 @@ components:
           type: integer
         draftEvents:
           type: integer
+        totalBudget:
+          type: number
+        totalBudgetUsed:
+          type: number
         eventsByCategory:
           type: array
           items:
@@ -523,7 +991,78 @@ components:
         - completedEvents
         - cancelledEvents
         - draftEvents
+        - totalBudget
+        - totalBudgetUsed
         - eventsByCategory
+
+    AnalyticsData:
+      type: object
+      properties:
+        attendanceByMonth:
+          type: array
+          items:
+            type: object
+            properties:
+              month:
+                type: string
+              attendees:
+                type: integer
+              events:
+                type: integer
+            required:
+              - month
+              - attendees
+              - events
+        statusBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              count:
+                type: integer
+              fill:
+                type: string
+            required:
+              - status
+              - count
+              - fill
+        budgetVsActual:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              budget:
+                type: number
+              actual:
+                type: number
+            required:
+              - name
+              - budget
+              - actual
+        categoryDistribution:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+              count:
+                type: integer
+              attendees:
+                type: integer
+            required:
+              - category
+              - count
+              - attendees
+      required:
+        - attendanceByMonth
+        - statusBreakdown
+        - budgetVsActual
+        - categoryDistribution
 
     ActivityItem:
       type: object
@@ -532,7 +1071,7 @@ components:
           type: integer
         type:
           type: string
-          enum: [created, updated, cancelled, completed, rsvp]
+          enum: [created, updated, cancelled, completed, rsvp, guest_added]
         eventId:
           type: integer
         eventTitle:
@@ -550,6 +1089,7 @@ components:
         - description
         - timestamp
 
+    # ─── AI ───────────────────────────────────
     GenerateDescriptionBody:
       type: object
       properties:
@@ -616,4 +1156,135 @@ components:
               - endDate
               - reasoning
       required:
+        - suggestions
+
+    EstimateBudgetBody:
+      type: object
+      properties:
+        title:
+          type: string
+        category:
+          type: string
+        location:
+          type: string
+        attendeeCount:
+          type: integer
+        durationHours:
+          type: number
+      required:
+        - title
+        - category
+        - location
+        - attendeeCount
+        - durationHours
+
+    BudgetEstimate:
+      type: object
+      properties:
+        totalEstimate:
+          type: number
+        breakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+              amount:
+                type: number
+              percentage:
+                type: number
+              notes:
+                type: string
+            required:
+              - category
+              - amount
+              - percentage
+              - notes
+        currency:
+          type: string
+        confidence:
+          type: string
+      required:
+        - totalEstimate
+        - breakdown
+        - currency
+        - confidence
+
+    SuggestThemesBody:
+      type: object
+      properties:
+        title:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+      required:
+        - title
+        - category
+        - description
+
+    ThemeSuggestions:
+      type: object
+      properties:
+        themes:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              improvements:
+                type: array
+                items:
+                  type: string
+              engagementTips:
+                type: array
+                items:
+                  type: string
+            required:
+              - name
+              - description
+              - improvements
+              - engagementTips
+      required:
+        - themes
+
+    AiChatBody:
+      type: object
+      properties:
+        message:
+          type: string
+        eventContext:
+          type: ["string", "null"]
+        history:
+          type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                enum: [user, assistant]
+              content:
+                type: string
+            required:
+              - role
+              - content
+      required:
+        - message
+
+    AiChatResponse:
+      type: object
+      properties:
+        reply:
+          type: string
+        suggestions:
+          type: array
+          items:
+            type: string
+      required:
+        - reply
         - suggestions

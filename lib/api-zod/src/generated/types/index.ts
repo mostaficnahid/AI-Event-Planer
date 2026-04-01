@@ -3,11 +3,24 @@
  * Do not edit manually.
  * Api
  * AI Events Organizer API specification
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 
 export * from "./activityItem";
 export * from "./activityItemType";
+export * from "./addGuestBody";
+export * from "./aiChatBody";
+export * from "./aiChatBodyHistoryItem";
+export * from "./aiChatBodyHistoryItemRole";
+export * from "./aiChatResponse";
+export * from "./analyticsData";
+export * from "./analyticsDataAttendanceByMonthItem";
+export * from "./analyticsDataBudgetVsActualItem";
+export * from "./analyticsDataCategoryDistributionItem";
+export * from "./analyticsDataStatusBreakdownItem";
+export * from "./authResponse";
+export * from "./budgetEstimate";
+export * from "./budgetEstimateBreakdownItem";
 export * from "./category";
 export * from "./createCategoryBody";
 export * from "./createEventBody";
@@ -15,15 +28,30 @@ export * from "./createEventBodyStatus";
 export * from "./dashboardSummary";
 export * from "./dashboardSummaryEventsByCategoryItem";
 export * from "./errorResponse";
+export * from "./estimateBudgetBody";
 export * from "./event";
 export * from "./eventStatus";
 export * from "./generatedDescription";
 export * from "./generateDescriptionBody";
 export * from "./getUpcomingEventsParams";
+export * from "./guest";
+export * from "./guestRsvpStatus";
 export * from "./healthStatus";
 export * from "./listEventsParams";
+export * from "./loginBody";
+export * from "./refreshTokenBody";
+export * from "./registerBody";
+export * from "./registerBodyRole";
 export * from "./scheduleSuggestion";
 export * from "./scheduleSuggestionSuggestionsItem";
 export * from "./suggestScheduleBody";
+export * from "./suggestThemesBody";
+export * from "./themeSuggestions";
+export * from "./themeSuggestionsThemesItem";
 export * from "./updateEventBody";
 export * from "./updateEventBodyStatus";
+export * from "./updateGuestBody";
+export * from "./updateGuestBodyRsvpStatus";
+export * from "./updateMeBody";
+export * from "./user";
+export * from "./userRole";

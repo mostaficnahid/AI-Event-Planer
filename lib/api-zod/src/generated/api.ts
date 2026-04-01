@@ -3,17 +3,109 @@
  * Do not edit manually.
  * Api
  * AI Events Organizer API specification
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 import * as zod from "zod";
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary Register a new user
+ */
+export const RegisterBody = zod.object({
+  name: zod.string(),
+  email: zod.string().email(),
+  password: zod.string(),
+  role: zod.enum(["admin", "organizer", "attendee"]).optional(),
+});
+
+/**
+ * @summary Login
+ */
+export const LoginBody = zod.object({
+  email: zod.string().email(),
+  password: zod.string(),
+});
+
+export const LoginResponse = zod.object({
+  accessToken: zod.string(),
+  refreshToken: zod.string(),
+  user: zod.object({
+    id: zod.number(),
+    name: zod.string(),
+    email: zod.string(),
+    role: zod.enum(["admin", "organizer", "attendee"]),
+    avatarUrl: zod.string().nullish(),
+    createdAt: zod.coerce.date(),
+  }),
+});
+
+/**
+ * @summary Refresh access token
+ */
+export const RefreshTokenBody = zod.object({
+  refreshToken: zod.string(),
+});
+
+export const RefreshTokenResponse = zod.object({
+  accessToken: zod.string(),
+  refreshToken: zod.string(),
+  user: zod.object({
+    id: zod.number(),
+    name: zod.string(),
+    email: zod.string(),
+    role: zod.enum(["admin", "organizer", "attendee"]),
+    avatarUrl: zod.string().nullish(),
+    createdAt: zod.coerce.date(),
+  }),
+});
+
+/**
+ * @summary Get current user profile
+ */
+export const GetMeResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  role: zod.enum(["admin", "organizer", "attendee"]),
+  avatarUrl: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update current user profile
+ */
+export const UpdateMeBody = zod.object({
+  name: zod.string().optional(),
+  avatarUrl: zod.string().nullish(),
+});
+
+export const UpdateMeResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  role: zod.enum(["admin", "organizer", "attendee"]),
+  avatarUrl: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary List all users (admin only)
+ */
+export const ListUsersResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  role: zod.enum(["admin", "organizer", "attendee"]),
+  avatarUrl: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const ListUsersResponse = zod.array(ListUsersResponseItem);
 
 /**
  * @summary List all events
@@ -38,7 +130,10 @@ export const ListEventsResponseItem = zod.object({
   attendeeCount: zod.number(),
   maxAttendees: zod.number().nullish(),
   imageUrl: zod.string().nullish(),
+  budget: zod.number().nullish(),
+  budgetUsed: zod.number().nullish(),
   tags: zod.array(zod.string()),
+  organizerId: zod.number().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -57,6 +152,8 @@ export const CreateEventBody = zod.object({
   status: zod.enum(["draft", "published", "cancelled", "completed"]),
   maxAttendees: zod.number().nullish(),
   imageUrl: zod.string().nullish(),
+  budget: zod.number().nullish(),
+  budgetUsed: zod.number().nullish(),
   tags: zod.array(zod.string()).optional(),
 });
 
@@ -71,10 +168,46 @@ export const GetDashboardSummaryResponse = zod.object({
   completedEvents: zod.number(),
   cancelledEvents: zod.number(),
   draftEvents: zod.number(),
+  totalBudget: zod.number(),
+  totalBudgetUsed: zod.number(),
   eventsByCategory: zod.array(
     zod.object({
       category: zod.string(),
       count: zod.number(),
+    }),
+  ),
+});
+
+/**
+ * @summary Get analytics chart data
+ */
+export const GetAnalyticsResponse = zod.object({
+  attendanceByMonth: zod.array(
+    zod.object({
+      month: zod.string(),
+      attendees: zod.number(),
+      events: zod.number(),
+    }),
+  ),
+  statusBreakdown: zod.array(
+    zod.object({
+      status: zod.string(),
+      count: zod.number(),
+      fill: zod.string(),
+    }),
+  ),
+  budgetVsActual: zod.array(
+    zod.object({
+      name: zod.string(),
+      budget: zod.number(),
+      actual: zod.number(),
+    }),
+  ),
+  categoryDistribution: zod.array(
+    zod.object({
+      category: zod.string(),
+      count: zod.number(),
+      attendees: zod.number(),
     }),
   ),
 });
@@ -98,7 +231,10 @@ export const GetUpcomingEventsResponseItem = zod.object({
   attendeeCount: zod.number(),
   maxAttendees: zod.number().nullish(),
   imageUrl: zod.string().nullish(),
+  budget: zod.number().nullish(),
+  budgetUsed: zod.number().nullish(),
   tags: zod.array(zod.string()),
+  organizerId: zod.number().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -111,7 +247,14 @@ export const GetUpcomingEventsResponse = zod.array(
  */
 export const GetRecentActivityResponseItem = zod.object({
   id: zod.number(),
-  type: zod.enum(["created", "updated", "cancelled", "completed", "rsvp"]),
+  type: zod.enum([
+    "created",
+    "updated",
+    "cancelled",
+    "completed",
+    "rsvp",
+    "guest_added",
+  ]),
   eventId: zod.number(),
   eventTitle: zod.string(),
   description: zod.string(),
@@ -140,7 +283,10 @@ export const GetEventResponse = zod.object({
   attendeeCount: zod.number(),
   maxAttendees: zod.number().nullish(),
   imageUrl: zod.string().nullish(),
+  budget: zod.number().nullish(),
+  budgetUsed: zod.number().nullish(),
   tags: zod.array(zod.string()),
+  organizerId: zod.number().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -162,6 +308,8 @@ export const UpdateEventBody = zod.object({
   status: zod.enum(["draft", "published", "cancelled", "completed"]).optional(),
   maxAttendees: zod.number().nullish(),
   imageUrl: zod.string().nullish(),
+  budget: zod.number().nullish(),
+  budgetUsed: zod.number().nullish(),
   tags: zod.array(zod.string()).optional(),
 });
 
@@ -177,7 +325,10 @@ export const UpdateEventResponse = zod.object({
   attendeeCount: zod.number(),
   maxAttendees: zod.number().nullish(),
   imageUrl: zod.string().nullish(),
+  budget: zod.number().nullish(),
+  budgetUsed: zod.number().nullish(),
   tags: zod.array(zod.string()),
+  organizerId: zod.number().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -190,7 +341,7 @@ export const DeleteEventParams = zod.object({
 });
 
 /**
- * @summary RSVP to an event (increment attendee count)
+ * @summary RSVP to an event
  */
 export const RsvpToEventParams = zod.object({
   id: zod.coerce.number(),
@@ -208,9 +359,76 @@ export const RsvpToEventResponse = zod.object({
   attendeeCount: zod.number(),
   maxAttendees: zod.number().nullish(),
   imageUrl: zod.string().nullish(),
+  budget: zod.number().nullish(),
+  budgetUsed: zod.number().nullish(),
   tags: zod.array(zod.string()),
+  organizerId: zod.number().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary List guests for an event
+ */
+export const ListGuestsParams = zod.object({
+  eventId: zod.coerce.number(),
+});
+
+export const ListGuestsResponseItem = zod.object({
+  id: zod.number(),
+  eventId: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  rsvpStatus: zod.enum(["pending", "confirmed", "declined", "maybe"]),
+  note: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const ListGuestsResponse = zod.array(ListGuestsResponseItem);
+
+/**
+ * @summary Add a guest to an event
+ */
+export const AddGuestParams = zod.object({
+  eventId: zod.coerce.number(),
+});
+
+export const AddGuestBody = zod.object({
+  name: zod.string(),
+  email: zod.string(),
+  note: zod.string().nullish(),
+});
+
+/**
+ * @summary Update guest RSVP status
+ */
+export const UpdateGuestParams = zod.object({
+  eventId: zod.coerce.number(),
+  guestId: zod.coerce.number(),
+});
+
+export const UpdateGuestBody = zod.object({
+  rsvpStatus: zod
+    .enum(["pending", "confirmed", "declined", "maybe"])
+    .optional(),
+  note: zod.string().nullish(),
+});
+
+export const UpdateGuestResponse = zod.object({
+  id: zod.number(),
+  eventId: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  rsvpStatus: zod.enum(["pending", "confirmed", "declined", "maybe"]),
+  note: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Remove a guest from an event
+ */
+export const RemoveGuestParams = zod.object({
+  eventId: zod.coerce.number(),
+  guestId: zod.coerce.number(),
 });
 
 /**
@@ -267,4 +485,70 @@ export const SuggestEventScheduleResponse = zod.object({
       reasoning: zod.string(),
     }),
   ),
+});
+
+/**
+ * @summary AI-estimate event budget breakdown
+ */
+export const EstimateBudgetBody = zod.object({
+  title: zod.string(),
+  category: zod.string(),
+  location: zod.string(),
+  attendeeCount: zod.number(),
+  durationHours: zod.number(),
+});
+
+export const EstimateBudgetResponse = zod.object({
+  totalEstimate: zod.number(),
+  breakdown: zod.array(
+    zod.object({
+      category: zod.string(),
+      amount: zod.number(),
+      percentage: zod.number(),
+      notes: zod.string(),
+    }),
+  ),
+  currency: zod.string(),
+  confidence: zod.string(),
+});
+
+/**
+ * @summary AI-suggest event themes and improvements
+ */
+export const SuggestThemesBody = zod.object({
+  title: zod.string(),
+  category: zod.string(),
+  description: zod.string(),
+});
+
+export const SuggestThemesResponse = zod.object({
+  themes: zod.array(
+    zod.object({
+      name: zod.string(),
+      description: zod.string(),
+      improvements: zod.array(zod.string()),
+      engagementTips: zod.array(zod.string()),
+    }),
+  ),
+});
+
+/**
+ * @summary AI event planning chat assistant
+ */
+export const AiChatBody = zod.object({
+  message: zod.string(),
+  eventContext: zod.string().nullish(),
+  history: zod
+    .array(
+      zod.object({
+        role: zod.enum(["user", "assistant"]),
+        content: zod.string(),
+      }),
+    )
+    .optional(),
+});
+
+export const AiChatResponse = zod.object({
+  reply: zod.string(),
+  suggestions: zod.array(zod.string()),
 });

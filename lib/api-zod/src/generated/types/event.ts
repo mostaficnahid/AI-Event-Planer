@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * AI Events Organizer API specification
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 import type { EventStatus } from "./eventStatus";
 
@@ -21,7 +21,13 @@ export interface Event {
   maxAttendees?: number | null;
   /** @nullable */
   imageUrl?: string | null;
+  /** @nullable */
+  budget?: number | null;
+  /** @nullable */
+  budgetUsed?: number | null;
   tags: string[];
+  /** @nullable */
+  organizerId?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }

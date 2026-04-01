@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, gte, desc, or, ilike } from "drizzle-orm";
+import { eq, sql, gte, desc, or, ilike, and } from "drizzle-orm";
 import { db, eventsTable, activityTable } from "@workspace/db";
 import {
   ListEventsQueryParams,
@@ -17,6 +17,7 @@ import {
   GetUpcomingEventsQueryParams,
   GetUpcomingEventsResponse,
   GetRecentActivityResponse,
+  GetAnalyticsResponse,
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -32,6 +33,8 @@ router.get("/events/dashboard", async (req, res): Promise<void> => {
   const completedEvents = events.filter(e => e.status === "completed").length;
   const cancelledEvents = events.filter(e => e.status === "cancelled").length;
   const draftEvents = events.filter(e => e.status === "draft").length;
+  const totalBudget = events.reduce((sum, e) => sum + Number(e.budget ?? 0), 0);
+  const totalBudgetUsed = events.reduce((sum, e) => sum + Number(e.budgetUsed ?? 0), 0);
 
   const categoryMap = new Map<string, number>();
   for (const event of events) {
@@ -39,18 +42,62 @@ router.get("/events/dashboard", async (req, res): Promise<void> => {
   }
   const eventsByCategory = Array.from(categoryMap.entries()).map(([category, count]) => ({ category, count }));
 
-  const summary = GetDashboardSummaryResponse.parse({
-    totalEvents,
-    upcomingEvents,
-    totalAttendees,
-    publishedEvents,
-    completedEvents,
-    cancelledEvents,
-    draftEvents,
-    eventsByCategory,
-  });
+  res.json(GetDashboardSummaryResponse.parse({
+    totalEvents, upcomingEvents, totalAttendees,
+    publishedEvents, completedEvents, cancelledEvents, draftEvents,
+    totalBudget, totalBudgetUsed, eventsByCategory,
+  }));
+});
 
-  res.json(summary);
+router.get("/events/analytics", async (_req, res): Promise<void> => {
+  const events = await db.select().from(eventsTable).orderBy(eventsTable.startDate);
+
+  // Attendance by month
+  const monthMap = new Map<string, { attendees: number; events: number }>();
+  for (const e of events) {
+    const d = new Date(e.startDate);
+    const key = d.toLocaleString("default", { month: "short", year: "2-digit" });
+    const cur = monthMap.get(key) ?? { attendees: 0, events: 0 };
+    monthMap.set(key, { attendees: cur.attendees + e.attendeeCount, events: cur.events + 1 });
+  }
+  const attendanceByMonth = Array.from(monthMap.entries()).map(([month, v]) => ({ month, ...v }));
+
+  // Status breakdown
+  const statusColors: Record<string, string> = {
+    published: "#6366f1",
+    completed: "#10b981",
+    draft: "#f59e0b",
+    cancelled: "#ef4444",
+  };
+  const statusMap = new Map<string, number>();
+  for (const e of events) {
+    statusMap.set(e.status, (statusMap.get(e.status) ?? 0) + 1);
+  }
+  const statusBreakdown = Array.from(statusMap.entries()).map(([status, count]) => ({
+    status,
+    count,
+    fill: statusColors[status] ?? "#94a3b8",
+  }));
+
+  // Budget vs actual (top 6 events with budget)
+  const budgetVsActual = events
+    .filter(e => e.budget != null)
+    .slice(0, 6)
+    .map(e => ({
+      name: e.title.length > 20 ? e.title.slice(0, 20) + "…" : e.title,
+      budget: Number(e.budget ?? 0),
+      actual: Number(e.budgetUsed ?? 0),
+    }));
+
+  // Category distribution
+  const catMap = new Map<string, { count: number; attendees: number }>();
+  for (const e of events) {
+    const cur = catMap.get(e.category) ?? { count: 0, attendees: 0 };
+    catMap.set(e.category, { count: cur.count + 1, attendees: cur.attendees + e.attendeeCount });
+  }
+  const categoryDistribution = Array.from(catMap.entries()).map(([category, v]) => ({ category, ...v }));
+
+  res.json(GetAnalyticsResponse.parse({ attendanceByMonth, statusBreakdown, budgetVsActual, categoryDistribution }));
 });
 
 router.get("/events/upcoming", async (req, res): Promise<void> => {
@@ -65,7 +112,7 @@ router.get("/events/upcoming", async (req, res): Promise<void> => {
     .orderBy(eventsTable.startDate)
     .limit(limit);
 
-  res.json(GetUpcomingEventsResponse.parse(events));
+  res.json(GetUpcomingEventsResponse.parse(events.map(toEventDto)));
 });
 
 router.get("/events/recent-activity", async (req, res): Promise<void> => {
@@ -87,12 +134,8 @@ router.get("/events", async (req, res): Promise<void> => {
     const { category, status, search, limit, offset } = params.data;
     const conditions = [];
 
-    if (category) {
-      conditions.push(eq(eventsTable.category, category));
-    }
-    if (status) {
-      conditions.push(eq(eventsTable.status, status));
-    }
+    if (category) conditions.push(eq(eventsTable.category, category));
+    if (status) conditions.push(eq(eventsTable.status, status));
     if (search) {
       conditions.push(
         or(
@@ -103,21 +146,13 @@ router.get("/events", async (req, res): Promise<void> => {
       );
     }
 
-    if (conditions.length > 0) {
-      const { and } = await import("drizzle-orm");
-      query = query.where(and(...conditions));
-    }
-
-    if (limit) {
-      query = query.limit(limit);
-    }
-    if (offset) {
-      query = query.offset(offset);
-    }
+    if (conditions.length > 0) query = query.where(and(...conditions));
+    if (limit) query = query.limit(limit);
+    if (offset) query = query.offset(offset);
   }
 
   const events = await query.orderBy(desc(eventsTable.createdAt));
-  res.json(ListEventsResponse.parse(events));
+  res.json(ListEventsResponse.parse(events.map(toEventDto)));
 });
 
 router.post("/events", async (req, res): Promise<void> => {
@@ -145,7 +180,7 @@ router.post("/events", async (req, res): Promise<void> => {
     description: `Event "${event.title}" was created`,
   });
 
-  res.status(201).json(GetEventResponse.parse(event));
+  res.status(201).json(GetEventResponse.parse(toEventDto(event)));
 });
 
 router.get("/events/:id", async (req, res): Promise<void> => {
@@ -155,17 +190,13 @@ router.get("/events/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [event] = await db
-    .select()
-    .from(eventsTable)
-    .where(eq(eventsTable.id, params.data.id));
-
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, params.data.id));
   if (!event) {
     res.status(404).json({ error: "Event not found" });
     return;
   }
 
-  res.json(GetEventResponse.parse(event));
+  res.json(GetEventResponse.parse(toEventDto(event)));
 });
 
 router.patch("/events/:id", async (req, res): Promise<void> => {
@@ -182,12 +213,8 @@ router.patch("/events/:id", async (req, res): Promise<void> => {
   }
 
   const updateData: Record<string, unknown> = { ...parsed.data };
-  if (parsed.data.startDate) {
-    updateData.startDate = new Date(parsed.data.startDate);
-  }
-  if (parsed.data.endDate) {
-    updateData.endDate = new Date(parsed.data.endDate);
-  }
+  if (parsed.data.startDate) updateData.startDate = new Date(parsed.data.startDate);
+  if (parsed.data.endDate) updateData.endDate = new Date(parsed.data.endDate);
 
   const [event] = await db
     .update(eventsTable)
@@ -207,7 +234,7 @@ router.patch("/events/:id", async (req, res): Promise<void> => {
     description: `Event "${event.title}" was updated`,
   });
 
-  res.json(UpdateEventResponse.parse(event));
+  res.json(UpdateEventResponse.parse(toEventDto(event)));
 });
 
 router.delete("/events/:id", async (req, res): Promise<void> => {
@@ -217,11 +244,7 @@ router.delete("/events/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [event] = await db
-    .delete(eventsTable)
-    .where(eq(eventsTable.id, params.data.id))
-    .returning();
-
+  const [event] = await db.delete(eventsTable).where(eq(eventsTable.id, params.data.id)).returning();
   if (!event) {
     res.status(404).json({ error: "Event not found" });
     return;
@@ -262,7 +285,15 @@ router.post("/events/:id/rsvp", async (req, res): Promise<void> => {
     description: `Someone RSVP'd to "${event.title}"`,
   });
 
-  res.json(RsvpToEventResponse.parse(event));
+  res.json(RsvpToEventResponse.parse(toEventDto(event)));
 });
+
+function toEventDto(event: typeof eventsTable.$inferSelect) {
+  return {
+    ...event,
+    budget: event.budget != null ? Number(event.budget) : null,
+    budgetUsed: event.budgetUsed != null ? Number(event.budgetUsed) : null,
+  };
+}
 
 export default router;

@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * AI Events Organizer API specification
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 export interface HealthStatus {
   status: string;
@@ -11,6 +11,61 @@ export interface HealthStatus {
 
 export interface ErrorResponse {
   error: string;
+}
+
+export type RegisterBodyRole =
+  (typeof RegisterBodyRole)[keyof typeof RegisterBodyRole];
+
+export const RegisterBodyRole = {
+  admin: "admin",
+  organizer: "organizer",
+  attendee: "attendee",
+} as const;
+
+export interface RegisterBody {
+  name: string;
+  email: string;
+  password: string;
+  role?: RegisterBodyRole;
+}
+
+export interface LoginBody {
+  email: string;
+  password: string;
+}
+
+export interface RefreshTokenBody {
+  refreshToken: string;
+}
+
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+
+export const UserRole = {
+  admin: "admin",
+  organizer: "organizer",
+  attendee: "attendee",
+} as const;
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: UserRole;
+  /** @nullable */
+  avatarUrl?: string | null;
+  createdAt: string;
+}
+
+export interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: User;
+}
+
+export interface UpdateMeBody {
+  name?: string;
+  /** @nullable */
+  avatarUrl?: string | null;
 }
 
 export type EventStatus = (typeof EventStatus)[keyof typeof EventStatus];
@@ -36,7 +91,13 @@ export interface Event {
   maxAttendees?: number | null;
   /** @nullable */
   imageUrl?: string | null;
+  /** @nullable */
+  budget?: number | null;
+  /** @nullable */
+  budgetUsed?: number | null;
   tags: string[];
+  /** @nullable */
+  organizerId?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,6 +124,10 @@ export interface CreateEventBody {
   maxAttendees?: number | null;
   /** @nullable */
   imageUrl?: string | null;
+  /** @nullable */
+  budget?: number | null;
+  /** @nullable */
+  budgetUsed?: number | null;
   tags?: string[];
 }
 
@@ -88,7 +153,55 @@ export interface UpdateEventBody {
   maxAttendees?: number | null;
   /** @nullable */
   imageUrl?: string | null;
+  /** @nullable */
+  budget?: number | null;
+  /** @nullable */
+  budgetUsed?: number | null;
   tags?: string[];
+}
+
+export type GuestRsvpStatus =
+  (typeof GuestRsvpStatus)[keyof typeof GuestRsvpStatus];
+
+export const GuestRsvpStatus = {
+  pending: "pending",
+  confirmed: "confirmed",
+  declined: "declined",
+  maybe: "maybe",
+} as const;
+
+export interface Guest {
+  id: number;
+  eventId: number;
+  name: string;
+  email: string;
+  rsvpStatus: GuestRsvpStatus;
+  /** @nullable */
+  note?: string | null;
+  createdAt: string;
+}
+
+export interface AddGuestBody {
+  name: string;
+  email: string;
+  /** @nullable */
+  note?: string | null;
+}
+
+export type UpdateGuestBodyRsvpStatus =
+  (typeof UpdateGuestBodyRsvpStatus)[keyof typeof UpdateGuestBodyRsvpStatus];
+
+export const UpdateGuestBodyRsvpStatus = {
+  pending: "pending",
+  confirmed: "confirmed",
+  declined: "declined",
+  maybe: "maybe",
+} as const;
+
+export interface UpdateGuestBody {
+  rsvpStatus?: UpdateGuestBodyRsvpStatus;
+  /** @nullable */
+  note?: string | null;
 }
 
 export interface Category {
@@ -118,7 +231,40 @@ export interface DashboardSummary {
   completedEvents: number;
   cancelledEvents: number;
   draftEvents: number;
+  totalBudget: number;
+  totalBudgetUsed: number;
   eventsByCategory: DashboardSummaryEventsByCategoryItem[];
+}
+
+export type AnalyticsDataAttendanceByMonthItem = {
+  month: string;
+  attendees: number;
+  events: number;
+};
+
+export type AnalyticsDataStatusBreakdownItem = {
+  status: string;
+  count: number;
+  fill: string;
+};
+
+export type AnalyticsDataBudgetVsActualItem = {
+  name: string;
+  budget: number;
+  actual: number;
+};
+
+export type AnalyticsDataCategoryDistributionItem = {
+  category: string;
+  count: number;
+  attendees: number;
+};
+
+export interface AnalyticsData {
+  attendanceByMonth: AnalyticsDataAttendanceByMonthItem[];
+  statusBreakdown: AnalyticsDataStatusBreakdownItem[];
+  budgetVsActual: AnalyticsDataBudgetVsActualItem[];
+  categoryDistribution: AnalyticsDataCategoryDistributionItem[];
 }
 
 export type ActivityItemType =
@@ -130,6 +276,7 @@ export const ActivityItemType = {
   cancelled: "cancelled",
   completed: "completed",
   rsvp: "rsvp",
+  guest_added: "guest_added",
 } as const;
 
 export interface ActivityItem {
@@ -170,6 +317,70 @@ export type ScheduleSuggestionSuggestionsItem = {
 
 export interface ScheduleSuggestion {
   suggestions: ScheduleSuggestionSuggestionsItem[];
+}
+
+export interface EstimateBudgetBody {
+  title: string;
+  category: string;
+  location: string;
+  attendeeCount: number;
+  durationHours: number;
+}
+
+export type BudgetEstimateBreakdownItem = {
+  category: string;
+  amount: number;
+  percentage: number;
+  notes: string;
+};
+
+export interface BudgetEstimate {
+  totalEstimate: number;
+  breakdown: BudgetEstimateBreakdownItem[];
+  currency: string;
+  confidence: string;
+}
+
+export interface SuggestThemesBody {
+  title: string;
+  category: string;
+  description: string;
+}
+
+export type ThemeSuggestionsThemesItem = {
+  name: string;
+  description: string;
+  improvements: string[];
+  engagementTips: string[];
+};
+
+export interface ThemeSuggestions {
+  themes: ThemeSuggestionsThemesItem[];
+}
+
+export type AiChatBodyHistoryItemRole =
+  (typeof AiChatBodyHistoryItemRole)[keyof typeof AiChatBodyHistoryItemRole];
+
+export const AiChatBodyHistoryItemRole = {
+  user: "user",
+  assistant: "assistant",
+} as const;
+
+export type AiChatBodyHistoryItem = {
+  role: AiChatBodyHistoryItemRole;
+  content: string;
+};
+
+export interface AiChatBody {
+  message: string;
+  /** @nullable */
+  eventContext?: string | null;
+  history?: AiChatBodyHistoryItem[];
+}
+
+export interface AiChatResponse {
+  reply: string;
+  suggestions: string[];
 }
 
 export type ListEventsParams = {

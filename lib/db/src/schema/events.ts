@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -14,7 +14,10 @@ export const eventsTable = pgTable("events", {
   attendeeCount: integer("attendee_count").notNull().default(0),
   maxAttendees: integer("max_attendees"),
   imageUrl: text("image_url"),
+  budget: numeric("budget", { precision: 12, scale: 2 }),
+  budgetUsed: numeric("budget_used", { precision: 12, scale: 2 }),
   tags: text("tags").array().notNull().default([]),
+  organizerId: integer("organizer_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

@@ -7,7 +7,14 @@ import {
   getGetEventQueryKey, 
   useListCategories,
   getListEventsQueryKey,
-  getGetDashboardSummaryQueryKey
+  getGetDashboardSummaryQueryKey,
+  useListGuests,
+  getListGuestsQueryKey,
+  useAddGuest,
+  useUpdateGuest,
+  useRemoveGuest,
+  useEstimateBudget,
+  useSuggestThemes
 } from "@workspace/api-client-react";
 import { useRoute, useLocation } from "wouter";
 import { useState, useEffect } from "react";
@@ -19,8 +26,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Calendar, MapPin, Users, Edit2, Trash2, Check, X, CheckCircle2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, ArrowLeft, Calendar, MapPin, Users, Edit2, Trash2, Check, X, CheckCircle2, DollarSign, Sparkles, UserPlus, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { formatDateTime } from "@/lib/utils";
 import {
   AlertDialog,
@@ -49,12 +58,28 @@ export default function EventDetail() {
     }
   });
 
+  const { data: guests, isLoading: isLoadingGuests } = useListGuests(eventId, {
+    query: {
+      enabled: !!eventId,
+      queryKey: getListGuestsQueryKey(eventId)
+    }
+  });
+
   const { data: categories } = useListCategories();
   const updateEvent = useUpdateEvent();
   const deleteEvent = useDeleteEvent();
   const rsvpEvent = useRsvpToEvent();
+  
+  const addGuest = useAddGuest();
+  const updateGuest = useUpdateGuest();
+  const removeGuest = useRemoveGuest();
+  const estimateBudget = useEstimateBudget();
+  const suggestThemes = useSuggestThemes();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isAddingGuest, setIsAddingGuest] = useState(false);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const [isThemesModalOpen, setIsThemesModalOpen] = useState(false);
 
   // Edit form state
   const [title, setTitle] = useState("");
@@ -66,8 +91,14 @@ export default function EventDetail() {
   const [status, setStatus] = useState<any>("draft");
   const [maxAttendees, setMaxAttendees] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [budget, setBudget] = useState("");
+  const [budgetUsed, setBudgetUsed] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+
+  // Guest form
+  const [guestName, setGuestName] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
 
   useEffect(() => {
     if (event) {
@@ -80,6 +111,8 @@ export default function EventDetail() {
       setStatus(event.status);
       setMaxAttendees(event.maxAttendees ? event.maxAttendees.toString() : "");
       setImageUrl(event.imageUrl || "");
+      setBudget(event.budget ? event.budget.toString() : "");
+      setBudgetUsed(event.budgetUsed ? event.budgetUsed.toString() : "");
       setTags(event.tags || []);
     }
   }, [event, isEditing]);
@@ -110,6 +143,8 @@ export default function EventDetail() {
           status,
           maxAttendees: maxAttendees ? parseInt(maxAttendees, 10) : null,
           imageUrl: imageUrl || null,
+          budget: budget ? parseFloat(budget) : null,
+          budgetUsed: budgetUsed ? parseFloat(budgetUsed) : null,
           tags,
         }
       },
@@ -151,6 +186,7 @@ export default function EventDetail() {
       {
         onSuccess: (updated) => {
           queryClient.setQueryData(getGetEventQueryKey(eventId), updated);
+          queryClient.invalidateQueries({ queryKey: getListGuestsQueryKey(eventId) });
           toast({ title: "RSVP successful!" });
         },
         onError: (err) => {
@@ -179,11 +215,69 @@ export default function EventDetail() {
     );
   };
 
+  const handleAddGuest = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!guestName || !guestEmail) return;
+    addGuest.mutate(
+      { eventId, data: { name: guestName, email: guestEmail } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListGuestsQueryKey(eventId) });
+          toast({ title: "Guest added successfully" });
+          setGuestName("");
+          setGuestEmail("");
+          setIsAddingGuest(false);
+        },
+        onError: (err) => {
+          toast({ title: "Error adding guest", description: err.error || "Unknown error", variant: "destructive" });
+        }
+      }
+    );
+  };
+
+  const handleEstimateBudget = () => {
+    estimateBudget.mutate(
+      { data: { 
+        title: event?.title || "", 
+        category: event?.category || "", 
+        location: event?.location || "Unknown",
+        attendeeCount: event?.maxAttendees || 50,
+        durationHours: 4 // default
+      } },
+      {
+        onSuccess: () => {
+          toast({ title: "Budget estimation complete" });
+        },
+        onError: (err) => {
+          toast({ title: "Estimation failed", description: err.error || "Unknown error", variant: "destructive" });
+        }
+      }
+    );
+  };
+
+  const handleSuggestThemes = () => {
+    suggestThemes.mutate(
+      { data: { 
+        title: event?.title || "", 
+        category: event?.category || "", 
+        description: event?.description || ""
+      } },
+      {
+        onSuccess: () => {
+          toast({ title: "Theme suggestions generated" });
+        },
+        onError: (err) => {
+          toast({ title: "Theme suggestion failed", description: err.error || "Unknown error", variant: "destructive" });
+        }
+      }
+    );
+  };
+
   if (isLoadingEvent) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       </Layout>
     );
@@ -202,24 +296,128 @@ export default function EventDetail() {
   }
 
   const isFull = event.maxAttendees !== null && event.attendeeCount >= event.maxAttendees;
+  const budgetProgress = event.budget && event.budget > 0 ? ((event.budgetUsed || 0) / event.budget) * 100 : 0;
+  const isOverBudget = event.budget && event.budgetUsed && event.budgetUsed > event.budget;
 
   return (
     <Layout>
-      <div className="flex flex-col gap-6 max-w-5xl mx-auto">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-8 max-w-6xl mx-auto">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" onClick={() => setLocation("/events")} data-testid="button-back">
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <Badge variant={event.status === 'published' ? 'default' : event.status === 'cancelled' ? 'destructive' : 'secondary'} className="text-sm">
+            <Badge variant={event.status === 'published' ? 'default' : event.status === 'cancelled' ? 'destructive' : 'secondary'} className="text-sm px-3 py-1 shadow-sm">
               {event.status}
             </Badge>
-            <Badge variant="outline" className="bg-background text-sm">
+            <Badge variant="outline" className="bg-background text-sm px-3 py-1 border-border">
               {event.category}
             </Badge>
           </div>
           
           <div className="flex items-center gap-2">
+            <Dialog open={isBudgetModalOpen} onOpenChange={setIsBudgetModalOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="text-emerald-500 border-border hover:bg-emerald-500/10" onClick={handleEstimateBudget} data-testid="button-estimate-budget">
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Estimate Budget
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-emerald-500" />
+                    AI Budget Estimation
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                  {estimateBudget.isPending ? (
+                    <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                      <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                      <p className="text-muted-foreground text-sm">Analyzing event requirements and market rates...</p>
+                    </div>
+                  ) : estimateBudget.data ? (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                        <div>
+                          <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Estimated Total</p>
+                          <h3 className="text-3xl font-bold mt-1 text-emerald-700 dark:text-emerald-300">
+                            {estimateBudget.data.currency} {estimateBudget.data.totalEstimate.toLocaleString()}
+                          </h3>
+                        </div>
+                        <Badge variant="outline" className="bg-background">{estimateBudget.data.confidence} Confidence</Badge>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">Breakdown</h4>
+                        {estimateBudget.data.breakdown.map((item, idx) => (
+                          <div key={idx} className="flex flex-col gap-1 p-3 border border-border rounded-lg bg-card">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">{item.category}</span>
+                              <span className="font-semibold">{estimateBudget.data.currency} {item.amount.toLocaleString()} ({item.percentage}%)</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{item.notes}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={isThemesModalOpen} onOpenChange={setIsThemesModalOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="text-indigo-500 border-border hover:bg-indigo-500/10" onClick={handleSuggestThemes} data-testid="button-suggest-themes">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Suggest Themes
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-indigo-500" />
+                    AI Theme Suggestions
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                  {suggestThemes.isPending ? (
+                    <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                      <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                      <p className="text-muted-foreground text-sm">Brainstorming creative concepts...</p>
+                    </div>
+                  ) : suggestThemes.data ? (
+                    <div className="grid gap-6">
+                      {suggestThemes.data.themes.map((theme, idx) => (
+                        <Card key={idx} className="border-indigo-500/20 bg-indigo-500/5">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-xl text-indigo-600 dark:text-indigo-400">{theme.name}</CardTitle>
+                            <CardDescription className="text-sm mt-1">{theme.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div>
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Improvements to Event</h4>
+                              <ul className="list-disc list-inside space-y-1 pl-4 text-sm">
+                                {theme.improvements.map((imp, i) => <li key={i}>{imp}</li>)}
+                              </ul>
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Engagement Tips</h4>
+                              <div className="flex flex-wrap gap-2">
+                                {theme.engagementTips.map((tip, i) => (
+                                  <Badge key={i} variant="secondary" className="bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/20">{tip}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </DialogContent>
+            </Dialog>
+
             {event.status === 'draft' && (
               <Button variant="outline" onClick={() => handleStatusChange('published')} data-testid="button-publish-event">
                 <Check className="w-4 h-4 mr-2" />
@@ -233,9 +431,9 @@ export default function EventDetail() {
               </Button>
             )}
             {event.status !== 'cancelled' && event.status !== 'completed' && (
-              <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10" onClick={() => handleStatusChange('cancelled')} data-testid="button-cancel-event">
+              <Button variant="outline" className="text-destructive border-border hover:bg-destructive/10" onClick={() => handleStatusChange('cancelled')} data-testid="button-cancel-event">
                 <X className="w-4 h-4 mr-2" />
-                Cancel Event
+                Cancel
               </Button>
             )}
             
@@ -278,7 +476,7 @@ export default function EventDetail() {
 
                   <div className="space-y-2">
                     <Label htmlFor="description">Description</Label>
-                    <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={5} />
+                    <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -289,6 +487,17 @@ export default function EventDetail() {
                     <div className="space-y-2">
                       <Label htmlFor="endDate">End Date & Time *</Label>
                       <Input id="endDate" type="datetime-local" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="budget">Total Budget ($)</Label>
+                      <Input id="budget" type="number" min="0" step="0.01" value={budget} onChange={(e) => setBudget(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="budgetUsed">Budget Used ($)</Label>
+                      <Input id="budgetUsed" type="number" min="0" step="0.01" value={budgetUsed} onChange={(e) => setBudgetUsed(e.target.value)} />
                     </div>
                   </div>
 
@@ -339,7 +548,7 @@ export default function EventDetail() {
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="icon" data-testid="button-delete-event">
+                <Button variant="destructive" size="icon" className="shadow-sm" data-testid="button-delete-event">
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </AlertDialogTrigger>
@@ -365,47 +574,158 @@ export default function EventDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             <div>
-              <h1 className="text-4xl font-extrabold tracking-tight mb-4" data-testid="text-event-title">{event.title}</h1>
+              <h1 className="text-4xl font-extrabold tracking-tight mb-4 leading-tight" data-testid="text-event-title">{event.title}</h1>
               {event.imageUrl && (
-                <div className="w-full h-64 md:h-96 rounded-xl overflow-hidden mb-6 bg-muted">
+                <div className="w-full h-64 md:h-[400px] rounded-2xl overflow-hidden mb-6 bg-muted shadow-md border border-border">
                   <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
                 </div>
               )}
               
               <div className="flex flex-wrap gap-2 mb-6">
                 {event.tags?.map((tag) => (
-                  <Badge key={tag} variant="secondary">#{tag}</Badge>
+                  <Badge key={tag} variant="secondary" className="px-3 py-1 bg-muted">#{tag}</Badge>
                 ))}
               </div>
 
-              <div className="prose prose-invert max-w-none">
-                <h3 className="text-xl font-semibold mb-2">About this event</h3>
-                <p className="whitespace-pre-wrap text-muted-foreground leading-relaxed" data-testid="text-event-description">
-                  {event.description || "No description provided."}
-                </p>
-              </div>
+              <Tabs defaultValue="details" className="w-full">
+                <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent mb-6">
+                  <TabsTrigger value="details" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">Overview</TabsTrigger>
+                  <TabsTrigger value="guests" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">Guest List</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="details" className="space-y-6">
+                  <div className="prose prose-invert max-w-none prose-p:leading-relaxed prose-p:text-muted-foreground prose-headings:text-foreground">
+                    <h3 className="text-xl font-semibold mb-3">About this event</h3>
+                    <p className="whitespace-pre-wrap" data-testid="text-event-description">
+                      {event.description || "No description provided."}
+                    </p>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="guests" className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold">Attendees</h3>
+                    <Dialog open={isAddingGuest} onOpenChange={setIsAddingGuest}>
+                      <DialogTrigger asChild>
+                        <Button size="sm" variant="outline" className="gap-2">
+                          <UserPlus className="w-4 h-4" />
+                          Add Guest
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Add New Guest</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleAddGuest} className="space-y-4 pt-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="guestName">Name</Label>
+                            <Input id="guestName" value={guestName} onChange={(e) => setGuestName(e.target.value)} required />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="guestEmail">Email</Label>
+                            <Input id="guestEmail" type="email" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} required />
+                          </div>
+                          <div className="flex justify-end gap-3 pt-4">
+                            <Button type="button" variant="outline" onClick={() => setIsAddingGuest(false)}>Cancel</Button>
+                            <Button type="submit" disabled={addGuest.isPending}>
+                              {addGuest.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                              Add Guest
+                            </Button>
+                          </div>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+
+                  {isLoadingGuests ? (
+                    <div className="space-y-3">
+                      {[1, 2, 3].map(i => <div key={i} className="h-16 bg-muted rounded-lg animate-pulse" />)}
+                    </div>
+                  ) : guests?.length === 0 ? (
+                    <div className="text-center py-10 border border-dashed rounded-lg bg-card">
+                      <Users className="w-8 h-8 mx-auto text-muted-foreground mb-3 opacity-50" />
+                      <p className="text-muted-foreground">No guests have RSVP'd yet.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {guests?.map(guest => (
+                        <div key={guest.id} className="flex items-center justify-between p-4 border rounded-xl bg-card hover:bg-muted/30 transition-colors shadow-sm">
+                          <div>
+                            <p className="font-medium">{guest.name}</p>
+                            <p className="text-sm text-muted-foreground">{guest.email}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Select 
+                              value={guest.rsvpStatus} 
+                              onValueChange={(val: any) => {
+                                updateGuest.mutate({ eventId, guestId: guest.id, data: { rsvpStatus: val } }, {
+                                  onSuccess: () => {
+                                    queryClient.invalidateQueries({ queryKey: getListGuestsQueryKey(eventId) });
+                                    toast({ title: "RSVP updated" });
+                                  }
+                                });
+                              }}
+                            >
+                              <SelectTrigger className="w-32 h-8 text-xs border-border">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="confirmed">Confirmed</SelectItem>
+                                <SelectItem value="declined">Declined</SelectItem>
+                                <SelectItem value="maybe">Maybe</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => {
+                                if (confirm("Remove this guest?")) {
+                                  removeGuest.mutate({ eventId, guestId: guest.id }, {
+                                    onSuccess: () => {
+                                      queryClient.invalidateQueries({ queryKey: getListGuestsQueryKey(eventId) });
+                                      toast({ title: "Guest removed" });
+                                    }
+                                  });
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
 
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Event Details</CardTitle>
+            <Card className="shadow-sm border-border">
+              <CardHeader className="pb-4 border-b bg-muted/20">
+                <CardTitle className="text-lg">Event Details</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 pt-6">
                 <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                     <Calendar className="w-5 h-5" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-sm">Date & Time</h4>
                     <p className="text-muted-foreground text-sm mt-1">{formatDateTime(event.startDate)}</p>
-                    <p className="text-muted-foreground text-sm mt-0.5">to {formatDateTime(event.endDate)}</p>
+                    <div className="flex items-center gap-1.5 mt-1 text-muted-foreground/80 text-xs">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>to {formatDateTime(event.endDate)}</span>
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
@@ -415,28 +735,52 @@ export default function EventDetail() {
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                     <Users className="w-5 h-5" />
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">Attendees</h4>
-                    <p className="text-muted-foreground text-sm mt-1">
-                      <span className="font-medium text-foreground" data-testid="text-event-attendees">{event.attendeeCount}</span>
-                      {event.maxAttendees ? ` / ${event.maxAttendees} capacity` : ' attending'}
-                    </p>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-baseline mb-1">
+                      <h4 className="font-semibold text-sm">Capacity</h4>
+                      <span className="text-xs font-medium text-muted-foreground">{event.attendeeCount} / {event.maxAttendees || '∞'}</span>
+                    </div>
+                    {event.maxAttendees ? (
+                      <Progress value={(event.attendeeCount / event.maxAttendees) * 100} className="h-1.5 mt-2" />
+                    ) : null}
                   </div>
                 </div>
+
+                {event.budget !== null && (
+                  <div className="flex gap-4 pt-2 border-t border-border/50">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <DollarSign className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-baseline mb-1">
+                        <h4 className="font-semibold text-sm">Budget</h4>
+                        <span className={cn("text-xs font-medium", isOverBudget ? "text-destructive" : "text-muted-foreground")}>
+                          ${event.budgetUsed?.toLocaleString() || 0} / ${event.budget.toLocaleString()}
+                        </span>
+                      </div>
+                      <Progress 
+                        value={budgetProgress} 
+                        className="h-1.5 mt-2" 
+                        indicatorClassName={isOverBudget ? "bg-destructive" : ""} 
+                      />
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            <Card className="bg-primary/5 border-primary/20">
-              <CardContent className="p-6">
+            <Card className="bg-primary/5 border-primary/20 shadow-sm overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
+              <CardContent className="p-6 relative">
                 <div className="text-center space-y-4">
                   <h3 className="font-semibold text-lg">Join this event</h3>
                   <p className="text-sm text-muted-foreground">Reserve your spot before it fills up.</p>
                   
                   <Button 
-                    className="w-full" 
+                    className="w-full shadow-md" 
                     size="lg" 
                     onClick={handleRSVP} 
                     disabled={rsvpEvent.isPending || isFull || event.status !== 'published'}

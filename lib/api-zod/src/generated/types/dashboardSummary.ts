@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * AI Events Organizer API specification
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 import type { DashboardSummaryEventsByCategoryItem } from "./dashboardSummaryEventsByCategoryItem";
 
@@ -15,5 +15,7 @@ export interface DashboardSummary {
   completedEvents: number;
   cancelledEvents: number;
   draftEvents: number;
+  totalBudget: number;
+  totalBudgetUsed: number;
   eventsByCategory: DashboardSummaryEventsByCategoryItem[];
 }

@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * AI Events Organizer API specification
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 
 export type ActivityItemType =
@@ -15,4 +15,5 @@ export const ActivityItemType = {
   cancelled: "cancelled",
   completed: "completed",
   rsvp: "rsvp",
+  guest_added: "guest_added",
 } as const;
