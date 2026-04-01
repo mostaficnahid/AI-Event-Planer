@@ -29,7 +29,7 @@ export default function Register() {
         onSuccess: (data) => {
           setAuth(data);
           toast({ title: "Account created successfully" });
-          setLocation("/");
+          setLocation("/dashboard");
         },
         onError: (err) => {
           toast({ title: "Registration failed", description: err.error || "Unknown error", variant: "destructive" });

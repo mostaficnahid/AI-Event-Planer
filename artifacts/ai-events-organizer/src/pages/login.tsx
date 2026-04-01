@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLogin } from "@workspace/api-client-react";
-import { useLocation, Link } from "wouter";
+import { useLocation, useSearch, Link } from "wouter";
 import { useAuth } from "@/contexts/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,9 @@ export default function Login() {
   const { setAuth } = useAuth();
   const { toast } = useToast();
 
+  const search = useSearch();
+  const nextPath = new URLSearchParams(search).get("next") || "/dashboard";
+
   const loginMutation = useLogin();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -26,7 +29,7 @@ export default function Login() {
         onSuccess: (data) => {
           setAuth(data);
           toast({ title: "Logged in successfully" });
-          setLocation("/");
+          setLocation(nextPath);
         },
         onError: (err) => {
           toast({ title: "Login failed", description: err.error || "Unknown error", variant: "destructive" });
