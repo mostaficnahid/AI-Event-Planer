@@ -6,8 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { CalendarDays, Loader2 } from "lucide-react";
+import { CalendarDays, Loader2, ArrowRight } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -28,73 +27,129 @@ export default function Login() {
       {
         onSuccess: (data) => {
           setAuth(data);
-          toast({ title: "Logged in successfully" });
+          toast({ title: "Welcome back!" });
           setLocation(nextPath);
         },
         onError: (err) => {
-          toast({ title: "Login failed", description: err.error || "Unknown error", variant: "destructive" });
-        }
+          toast({ title: "Sign in failed", description: (err as any).error || "Invalid email or password", variant: "destructive" });
+        },
       }
     );
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center text-center">
-          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground mb-4">
-            <CalendarDays className="w-6 h-6" />
+    <div className="min-h-screen flex bg-background">
+      {/* Left panel */}
+      <div className="hidden lg:flex lg:w-[42%] flex-col justify-between p-10 relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(262 83% 48%))" }}>
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 30% 20%, white 1px, transparent 1px), radial-gradient(circle at 70% 80%, white 1px, transparent 1px)", backgroundSize: "48px 48px" }} />
+        <div className="flex items-center gap-2.5 relative z-10">
+          <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center backdrop-blur-sm">
+            <CalendarDays className="w-5 h-5 text-white" />
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Welcome back</h1>
-          <p className="text-muted-foreground mt-2">Sign in to your account to continue</p>
+          <span className="font-bold text-white text-lg tracking-tight">AI Events</span>
         </div>
+        <div className="relative z-10">
+          <h2 className="text-3xl font-black text-white mb-3 leading-tight">Plan smarter.<br />Organize better.</h2>
+          <p className="text-white/70 text-sm leading-relaxed max-w-xs">
+            AI-powered event management with real-time guest tracking, budget estimation, and analytics — all in one place.
+          </p>
+          <div className="mt-8 space-y-3">
+            {["AI Description & Schedule Generator", "Real-time RSVP Guest Tracking", "Budget Estimation & Analytics"].map((f) => (
+              <div key={f} className="flex items-center gap-2.5 text-sm text-white/85">
+                <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                </div>
+                {f}
+              </div>
+            ))}
+          </div>
+        </div>
+        <p className="text-white/30 text-xs relative z-10">© {new Date().getFullYear()} AI Events Organizer</p>
+      </div>
 
-        <Card className="border-border shadow-lg">
-          <form onSubmit={handleSubmit}>
-            <CardHeader>
-              <CardTitle>Sign In</CardTitle>
-              <CardDescription>Enter your email and password.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  data-testid="input-login-email"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  data-testid="input-login-password"
-                />
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full" disabled={loginMutation.isPending} data-testid="button-login-submit">
-                {loginMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Sign In
-              </Button>
-              <div className="text-center text-sm text-muted-foreground">
-                Don't have an account?{" "}
-                <Link href="/register" className="text-primary hover:underline font-medium" data-testid="link-register">
-                  Sign up
-                </Link>
-              </div>
-            </CardFooter>
+      {/* Right panel */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+          {/* Mobile logo */}
+          <div className="flex items-center gap-2 mb-8 lg:hidden">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(262 83% 58%))" }}>
+              <CalendarDays className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-bold tracking-tight">AI Events</span>
+          </div>
+
+          <h1 className="text-2xl font-black tracking-tight mb-1">Welcome back</h1>
+          <p className="text-sm text-muted-foreground mb-8">Sign in to your account to continue</p>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="h-10 bg-muted/30 border-border/60 focus:bg-background"
+                data-testid="input-login-email"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="h-10 bg-muted/30 border-border/60 focus:bg-background"
+                data-testid="input-login-password"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full h-10 font-semibold gap-2 mt-2"
+              disabled={loginMutation.isPending}
+              data-testid="button-login-submit"
+              style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(262 83% 58%))" }}
+            >
+              {loginMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>Sign In <ArrowRight className="w-4 h-4" /></>
+              )}
+            </Button>
           </form>
-        </Card>
+
+          {/* Demo hint */}
+          <div className="mt-6 p-3.5 rounded-xl border border-border/50 bg-muted/20">
+            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Demo accounts</p>
+            <div className="space-y-1">
+              {[["admin@demo.com", "Admin"], ["alice@demo.com", "Organizer"], ["bob@demo.com", "Attendee"]].map(([email, role]) => (
+                <button
+                  key={email}
+                  type="button"
+                  onClick={() => { setEmail(email); setPassword("demo1234"); }}
+                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-muted/60 text-left transition-colors group"
+                >
+                  <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">{email}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{role}</span>
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-muted-foreground/50 mt-2 px-2">Password: <code className="font-mono">demo1234</code></p>
+          </div>
+
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            Don't have an account?{" "}
+            <Link href="/register" className="font-semibold text-primary hover:underline" data-testid="link-register">
+              Sign up free
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

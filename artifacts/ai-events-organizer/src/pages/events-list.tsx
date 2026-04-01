@@ -3,18 +3,24 @@ import { useListEvents, useListCategories } from "@workspace/api-client-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Calendar, Users, MapPin } from "lucide-react";
-import { formatDateTime } from "@/lib/utils";
+import { Search, Calendar, Users, MapPin, Plus, Clock } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
+const statusStyle: Record<string, string> = {
+  published: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  draft:     "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  completed: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+  cancelled: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
+};
+
 export default function EventsList() {
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<string>("all");
-  const [status, setStatus] = useState<string>("all");
+  const [category, setCategory] = useState("all");
+  const [status, setStatus] = useState("all");
 
   const { data: events, isLoading } = useListEvents({
     search: search || undefined,
@@ -27,43 +33,47 @@ export default function EventsList() {
   return (
     <Layout>
       <div className="flex flex-col gap-6">
+
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Events</h1>
-            <p className="text-muted-foreground mt-1">Manage and track all your events.</p>
+            <h1 className="text-2xl font-black tracking-tight">Events</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {isLoading ? "Loading…" : `${events?.length ?? 0} event${events?.length === 1 ? "" : "s"}`}
+            </p>
           </div>
           <Link href="/events/new">
-            <Button data-testid="button-create-event">Create Event</Button>
+            <Button data-testid="button-create-event" size="sm" className="gap-1.5 h-9 font-semibold shadow-sm">
+              <Plus className="w-3.5 h-3.5" /> New Event
+            </Button>
           </Link>
         </div>
 
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search events..." 
-              className="pl-9"
+        {/* Filter bar */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search events…"
+              className="pl-9 h-9 text-sm bg-muted/30 border-border/60 focus:bg-background"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               data-testid="input-search-events"
             />
           </div>
-          
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger data-testid="select-category-filter">
+            <SelectTrigger className="h-9 text-sm w-full sm:w-44 bg-muted/30 border-border/60" data-testid="select-category-filter">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              {categories?.map(c => (
+              {categories?.map((c) => (
                 <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-
           <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger data-testid="select-status-filter">
+            <SelectTrigger className="h-9 text-sm w-full sm:w-40 bg-muted/30 border-border/60" data-testid="select-status-filter">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -77,69 +87,89 @@ export default function EventsList() {
         </div>
 
         {/* List */}
-        <div className="space-y-4">
+        <div className="space-y-2.5">
           {isLoading ? (
             Array(5).fill(0).map((_, i) => (
-              <Skeleton key={i} className="h-32 w-full" />
+              <Skeleton key={i} className="h-[88px] w-full rounded-xl" />
             ))
           ) : events?.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-12 text-center border rounded-lg border-dashed bg-card/50">
-              <Calendar className="w-12 h-12 text-muted-foreground opacity-20 mb-4" />
-              <h3 className="text-lg font-medium">No events found</h3>
-              <p className="text-muted-foreground max-w-sm mt-2">Try adjusting your filters or create a new event.</p>
+            <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-border rounded-xl bg-muted/10">
+              <div className="w-14 h-14 rounded-xl bg-muted/50 flex items-center justify-center mb-4">
+                <Calendar className="w-6 h-6 text-muted-foreground/40" />
+              </div>
+              <h3 className="text-base font-semibold mb-1">No events found</h3>
+              <p className="text-sm text-muted-foreground max-w-xs">
+                {search || category !== "all" || status !== "all"
+                  ? "Try adjusting your filters to see more events."
+                  : "Create your first event to get started."}
+              </p>
+              {!search && category === "all" && status === "all" && (
+                <Link href="/events/new" className="mt-5">
+                  <Button size="sm" className="gap-1.5 h-8 text-xs">
+                    <Plus className="w-3.5 h-3.5" /> Create event
+                  </Button>
+                </Link>
+              )}
             </div>
           ) : (
-            events?.map((event) => (
-              <Link key={event.id} href={`/events/${event.id}`}>
-                <Card className="hover:border-primary/50 transition-colors cursor-pointer group" data-testid={`card-event-${event.id}`}>
-                  <CardContent className="p-6 flex flex-col sm:flex-row gap-6">
-                    {/* Date Block */}
-                    <div className="flex-shrink-0 w-32 flex flex-col items-center justify-center p-4 rounded-md bg-muted text-center border">
-                      <span className="text-xs font-semibold text-primary uppercase tracking-wider">
-                        {new Date(event.startDate).toLocaleString('default', { month: 'short' })}
+            events?.map((event) => {
+              const d = new Date(event.startDate);
+              return (
+                <Link key={event.id} href={`/events/${event.id}`}>
+                  <div
+                    className="flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card hover:border-primary/30 hover:bg-muted/30 transition-all cursor-pointer group"
+                    data-testid={`card-event-${event.id}`}
+                  >
+                    {/* Date pill */}
+                    <div className="w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0 border border-border/60" style={{ background: "hsl(var(--primary)/0.07)" }}>
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-primary/80 leading-none">
+                        {d.toLocaleString("default", { month: "short" })}
                       </span>
-                      <span className="text-3xl font-bold mt-1">
-                        {new Date(event.startDate).getDate()}
-                      </span>
-                      <span className="text-xs text-muted-foreground mt-1">
-                        {new Date(event.startDate).getFullYear()}
+                      <span className="text-[18px] font-black text-primary leading-tight">
+                        {d.getDate()}
                       </span>
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 flex flex-col justify-center min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <Badge variant="outline" className="bg-background">
-                          {event.category}
-                        </Badge>
-                        <Badge 
-                          variant={event.status === 'published' ? 'default' : event.status === 'cancelled' ? 'destructive' : 'secondary'}
-                        >
-                          {event.status}
-                        </Badge>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h2 className="text-sm font-bold truncate group-hover:text-primary transition-colors">
+                          {event.title}
+                        </h2>
                       </div>
-                      
-                      <h2 className="text-xl font-bold truncate group-hover:text-primary transition-colors">{event.title}</h2>
-                      
-                      <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="w-4 h-4" />
-                          <span className="truncate">{formatDateTime(event.startDate)}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <MapPin className="w-4 h-4" />
-                          <span className="truncate max-w-[200px]">{event.location}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Users className="w-4 h-4" />
-                          <span>{event.attendeeCount} {event.maxAttendees ? `/ ${event.maxAttendees}` : ''}</span>
-                        </div>
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {formatDate(event.startDate)}
+                        </span>
+                        {event.location && (
+                          <span className="flex items-center gap-1 max-w-[180px] truncate">
+                            <MapPin className="w-3 h-3 shrink-0" />
+                            <span className="truncate">{event.location}</span>
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          {event.attendeeCount}{event.maxAttendees ? ` / ${event.maxAttendees}` : ""}
+                        </span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))
+
+                    {/* Right side */}
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize ${statusStyle[event.status] ?? "bg-muted text-muted-foreground border-border"}`}>
+                        {event.status}
+                      </span>
+                      {event.category && (
+                        <span className="text-[11px] text-muted-foreground/70 px-2 py-0.5 rounded-full border border-border/40 bg-muted/30">
+                          {event.category}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })
           )}
         </div>
       </div>
