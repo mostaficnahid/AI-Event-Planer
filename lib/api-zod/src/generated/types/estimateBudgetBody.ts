@@ -12,4 +12,5 @@ export interface EstimateBudgetBody {
   location: string;
   attendeeCount: number;
   durationHours: number;
+  currency?: string;
 }

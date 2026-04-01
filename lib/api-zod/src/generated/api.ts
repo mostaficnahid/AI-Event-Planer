@@ -496,6 +496,7 @@ export const EstimateBudgetBody = zod.object({
   location: zod.string(),
   attendeeCount: zod.number(),
   durationHours: zod.number(),
+  currency: zod.string().optional(),
 });
 
 export const EstimateBudgetResponse = zod.object({

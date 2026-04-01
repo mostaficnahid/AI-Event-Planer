@@ -91,7 +91,7 @@ router.post("/ai/estimate-budget", async (req, res): Promise<void> => {
     return;
   }
 
-  const { title, category, location, attendeeCount, durationHours } = parsed.data;
+  const { title, category, location, attendeeCount, durationHours, currency = "USD" } = parsed.data;
 
   const prompt = `Estimate a realistic budget breakdown for this event:
 Title: ${title}
@@ -99,13 +99,15 @@ Category: ${category}
 Location: ${location}
 Attendees: ${attendeeCount}
 Duration: ${durationHours} hours
+Currency: ${currency}
 
 Return JSON with:
-- "totalEstimate": total USD amount (number)
-- "breakdown": array of {category, amount, percentage, notes} items
-- "currency": "USD"
+- "totalEstimate": total amount in ${currency} (number, realistic for the local market)
+- "breakdown": array of {category, amount, percentage, notes} items (all amounts in ${currency})
+- "currency": "${currency}"
 - "confidence": "low"|"medium"|"high"
 
+IMPORTANT: All monetary amounts must be in ${currency}, not USD. Use realistic local market rates for the currency's home country/region.
 Include typical line items like venue, catering, A/V, marketing, staff, etc. as appropriate.`;
 
   const completion = await openai.chat.completions.create({
