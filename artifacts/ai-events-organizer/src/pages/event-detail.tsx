@@ -30,7 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, ArrowLeft, Calendar, MapPin, Users, Edit2, Trash2, Check, X, CheckCircle2, DollarSign, Sparkles, UserPlus, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
