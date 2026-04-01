@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/contexts/theme";
 import { AuthProvider } from "@/contexts/auth";
 
 import NotFound from "@/pages/not-found";
+import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import EventsList from "@/pages/events-list";
 import EventNew from "@/pages/event-new";
@@ -21,7 +22,8 @@ const queryClient = new QueryClient();
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
+      <Route path="/" component={Landing} />
+      <Route path="/dashboard" component={Dashboard} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/events" component={EventsList} />

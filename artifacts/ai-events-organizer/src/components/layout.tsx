@@ -30,7 +30,7 @@ export function Layout({ children }: LayoutProps) {
   const logoutMutation = useLogout();
 
   const navItems = [
-    { href: "/", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/events", label: "All Events", icon: CalendarDays },
     { href: "/categories", label: "Categories", icon: Tags },
     { href: "/ai-assistant", label: "AI Assistant", icon: Bot },
