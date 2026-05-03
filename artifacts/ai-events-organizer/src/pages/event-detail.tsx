@@ -143,6 +143,7 @@ export default function EventDetail() {
   const [isThemesModalOpen, setIsThemesModalOpen] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
   const [currencySearch, setCurrencySearch] = useState("");
+  const [showCurrencyPicker, setShowCurrencyPicker] = useState(true);
 
   // Edit form state
   const [title, setTitle] = useState("");
@@ -310,9 +311,11 @@ export default function EventDetail() {
       } },
       {
         onSuccess: () => {
+          setShowCurrencyPicker(false);
           toast({ title: "Budget estimation complete" });
         },
         onError: (err) => {
+          setShowCurrencyPicker(true);
           toast({ title: "Estimation failed", description: err.error || "Unknown error", variant: "destructive" });
         }
       }
@@ -380,7 +383,7 @@ export default function EventDetail() {
           </div>
           
           <div className="flex items-center gap-2">
-            <Dialog open={isBudgetModalOpen} onOpenChange={(open) => { setIsBudgetModalOpen(open); if (!open) { estimateBudget.reset?.(); setCurrencySearch(""); } }}>
+            <Dialog open={isBudgetModalOpen} onOpenChange={(open) => { setIsBudgetModalOpen(open); if (!open) { setShowCurrencyPicker(true); setCurrencySearch(""); } }}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="text-emerald-500 border-border hover:bg-emerald-500/10" data-testid="button-estimate-budget">
                   <DollarSign className="w-4 h-4 mr-2" />
@@ -396,7 +399,7 @@ export default function EventDetail() {
                 </DialogHeader>
 
                 {/* ── Currency picker (shown before result) ── */}
-                {!estimateBudget.data && !estimateBudget.isPending && (
+                {showCurrencyPicker && !estimateBudget.isPending && (
                   <div className="space-y-4 py-2">
                     <div>
                       <p className="text-sm font-semibold mb-1">Select currency</p>
@@ -456,7 +459,7 @@ export default function EventDetail() {
                 )}
 
                 {/* ── Results ── */}
-                {estimateBudget.data && (
+                {!showCurrencyPicker && !estimateBudget.isPending && estimateBudget.data && (
                   <div className="space-y-5 py-2">
                     {/* Total header */}
                     <div className="flex items-start justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
@@ -475,7 +478,7 @@ export default function EventDetail() {
                         <Badge variant="outline" className={`bg-background capitalize ${estimateBudget.data.confidence === "high" ? "text-emerald-600 border-emerald-400" : estimateBudget.data.confidence === "medium" ? "text-amber-600 border-amber-400" : "text-red-600 border-red-400"}`}>
                           {estimateBudget.data.confidence} confidence
                         </Badge>
-                        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground" onClick={() => { estimateBudget.reset?.(); setCurrencySearch(""); }}>
+                        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground" onClick={() => { setShowCurrencyPicker(true); setCurrencySearch(""); }}>
                           Change currency
                         </Button>
                       </div>
