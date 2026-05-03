@@ -97,6 +97,7 @@ const tooltipStyle = {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const isAttendee = user?.role === "attendee";
   const { data: summary, isLoading: isLoadingSummary } = useGetDashboardSummary();
   const { data: analytics, isLoading: isLoadingAnalytics } = useGetAnalytics();
   const { data: upcomingEvents, isLoading: isLoadingUpcoming } = useGetUpcomingEvents({ limit: 5 });
@@ -121,12 +122,14 @@ export default function Dashboard() {
             </p>
             <h1 className="text-2xl font-black tracking-tight">Dashboard</h1>
           </div>
-          <Link href="/events/new">
-            <Button data-testid="button-create-event-dash" size="sm" className="gap-1.5 h-9 shadow-sm font-semibold">
-              <Plus className="w-3.5 h-3.5" />
-              New Event
-            </Button>
-          </Link>
+          {!isAttendee && (
+            <Link href="/events/new">
+              <Button data-testid="button-create-event-dash" size="sm" className="gap-1.5 h-9 shadow-sm font-semibold">
+                <Plus className="w-3.5 h-3.5" />
+                New Event
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* ── KPI row ── */}
@@ -310,11 +313,13 @@ export default function Dashboard() {
                   </div>
                   <p className="text-sm font-medium text-muted-foreground">No upcoming events</p>
                   <p className="text-xs text-muted-foreground/60 mt-0.5">Create your first event to get started</p>
-                  <Link href="/events/new" className="mt-4">
-                    <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs">
-                      <Plus className="w-3.5 h-3.5" /> Create event
-                    </Button>
-                  </Link>
+                  {!isAttendee && (
+                    <Link href="/events/new" className="mt-4">
+                      <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs">
+                        <Plus className="w-3.5 h-3.5" /> Create event
+                      </Button>
+                    </Link>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-2.5">

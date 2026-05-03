@@ -243,14 +243,16 @@ export default function Landing() {
       <motion.nav initial={{ y: -64, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, ease: [0.22,1,0.36,1] }}
         className="fixed top-0 inset-x-0 z-50 h-16 flex items-center justify-between px-6 md:px-12 border-b border-white/[0.05]"
         style={{ backdropFilter: "blur(24px)", background: "rgba(5,8,15,0.82)" }}>
-        <div className="flex items-center gap-3">
-          <div className="relative w-9 h-9 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}>
-            <CalendarDays className="w-[18px] h-[18px] text-white" />
-            <div className="absolute inset-0 rounded-xl opacity-40" style={{ boxShadow: "0 0 20px #6366f1" }} />
+        <Link href="/">
+          <div className="flex items-center gap-3 cursor-pointer">
+            <div className="relative w-9 h-9 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}>
+              <CalendarDays className="w-[18px] h-[18px] text-white" />
+              <div className="absolute inset-0 rounded-xl opacity-40" style={{ boxShadow: "0 0 20px #6366f1" }} />
+            </div>
+            <span className="font-extrabold text-[17px] tracking-tight">AI Events</span>
+            <span className="hidden sm:inline text-[11px] px-2 py-0.5 rounded-full border font-bold" style={{ background: "rgba(99,102,241,0.12)", borderColor: "rgba(99,102,241,0.35)", color: "#a5b4fc" }}>Beta</span>
           </div>
-          <span className="font-extrabold text-[17px] tracking-tight">AI Events</span>
-          <span className="hidden sm:inline text-[11px] px-2 py-0.5 rounded-full border font-bold" style={{ background: "rgba(99,102,241,0.12)", borderColor: "rgba(99,102,241,0.35)", color: "#a5b4fc" }}>Beta</span>
-        </div>
+        </Link>
         <div className="hidden md:flex items-center gap-8 text-[13px] font-medium text-white/45">
           {[["Services","#services"],["How it works","#how-it-works"],["Testimonials","#testimonials"]].map(([l,h])=>(
             <a key={l} href={h} className="hover:text-white transition-colors duration-200">{l}</a>
