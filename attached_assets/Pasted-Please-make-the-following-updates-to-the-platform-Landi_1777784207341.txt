@@ -1,0 +1,40 @@
+Please make the following updates to the platform:
+
+
+Landing page navigation
+There is currently no clear and user-friendly way to return to the landing page after navigating to other sections of the website. This should be improved so that users can easily go back to the home page at any time. Clicking the website logo should always redirect the user to the landing page, and this behavior should remain consistent across the entire platform.
+
+
+Restore 3D design on the landing page
+The landing page in the new version has lost the 3D design elements that were present before. Those 3D visuals added a stronger first impression, made the page look more modern, and improved the overall appearance of the platform. Please restore or reintroduce the 3D design section on the landing page so the homepage feels visually engaging again. The updated landing page should not look flat or overly basic compared to the previous version.
+Specifically, make sure:
+
+The 3D design is visible on the landing page.
+It is positioned properly and does not break the layout.
+It remains responsive across desktop, tablet, and mobile views.
+It matches the overall branding and style of the website.
+It does not negatively affect page speed or usability.
+
+
+
+Attendee portal restrictions
+Attendees should not be able to create events. The “New Event” option should be removed from the attendee portal completely. The attendee portal should only contain features that are relevant to attendee actions and permissions. This will make the interface cleaner, reduce confusion, and ensure proper role-based access control.
+
+
+Currency handling
+To avoid inconsistency and simplify the budget feature, keep only USD as the platform currency and remove all other currency options.
+Please ensure that:
+
+All alternative currencies are removed from the system.
+The currency selector is removed wherever it appears.
+All budget calculations, estimated costs, and displayed values use USD only.
+The dollar symbol and formatting remain consistent throughout the platform.
+No outdated or mixed currency values remain anywhere in the interface.
+
+
+
+Testing and final review
+After making these updates, please test the entire flow carefully to confirm everything works correctly. The logo should always return users to the landing page, the 3D design should appear properly in the new version, attendees should no longer see the “New Event” option, and all financial or estimate-related sections should display only USD.
+
+
+These updates are important to improve the platform’s usability, maintain design quality, and ensure a more consistent experience for all users.

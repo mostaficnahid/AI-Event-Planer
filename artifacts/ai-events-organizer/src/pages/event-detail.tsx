@@ -44,66 +44,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-const CURRENCIES = [
-  { code: "USD", symbol: "$",    name: "US Dollar",          flag: "🇺🇸" },
-  { code: "EUR", symbol: "€",    name: "Euro",               flag: "🇪🇺" },
-  { code: "GBP", symbol: "£",    name: "British Pound",      flag: "🇬🇧" },
-  { code: "INR", symbol: "₹",    name: "Indian Rupee",       flag: "🇮🇳" },
-  { code: "BDT", symbol: "৳",    name: "Bangladeshi Taka",   flag: "🇧🇩" },
-  { code: "PKR", symbol: "₨",    name: "Pakistani Rupee",    flag: "🇵🇰" },
-  { code: "AED", symbol: "د.إ",  name: "UAE Dirham",         flag: "🇦🇪" },
-  { code: "SAR", symbol: "﷼",    name: "Saudi Riyal",        flag: "🇸🇦" },
-  { code: "QAR", symbol: "ر.ق",  name: "Qatari Riyal",       flag: "🇶🇦" },
-  { code: "KWD", symbol: "د.ك",  name: "Kuwaiti Dinar",      flag: "🇰🇼" },
-  { code: "BHD", symbol: ".د.ب", name: "Bahraini Dinar",     flag: "🇧🇭" },
-  { code: "OMR", symbol: "ر.ع.", name: "Omani Rial",         flag: "🇴🇲" },
-  { code: "JPY", symbol: "¥",    name: "Japanese Yen",       flag: "🇯🇵" },
-  { code: "CNY", symbol: "¥",    name: "Chinese Yuan",       flag: "🇨🇳" },
-  { code: "KRW", symbol: "₩",    name: "South Korean Won",   flag: "🇰🇷" },
-  { code: "SGD", symbol: "S$",   name: "Singapore Dollar",   flag: "🇸🇬" },
-  { code: "MYR", symbol: "RM",   name: "Malaysian Ringgit",  flag: "🇲🇾" },
-  { code: "THB", symbol: "฿",    name: "Thai Baht",          flag: "🇹🇭" },
-  { code: "IDR", symbol: "Rp",   name: "Indonesian Rupiah",  flag: "🇮🇩" },
-  { code: "PHP", symbol: "₱",    name: "Philippine Peso",    flag: "🇵🇭" },
-  { code: "VND", symbol: "₫",    name: "Vietnamese Dong",    flag: "🇻🇳" },
-  { code: "TWD", symbol: "NT$",  name: "Taiwan Dollar",      flag: "🇹🇼" },
-  { code: "HKD", symbol: "HK$",  name: "Hong Kong Dollar",   flag: "🇭🇰" },
-  { code: "AUD", symbol: "A$",   name: "Australian Dollar",  flag: "🇦🇺" },
-  { code: "NZD", symbol: "NZ$",  name: "New Zealand Dollar", flag: "🇳🇿" },
-  { code: "CAD", symbol: "CA$",  name: "Canadian Dollar",    flag: "🇨🇦" },
-  { code: "MXN", symbol: "MX$",  name: "Mexican Peso",       flag: "🇲🇽" },
-  { code: "BRL", symbol: "R$",   name: "Brazilian Real",     flag: "🇧🇷" },
-  { code: "ARS", symbol: "$",    name: "Argentine Peso",     flag: "🇦🇷" },
-  { code: "CLP", symbol: "$",    name: "Chilean Peso",       flag: "🇨🇱" },
-  { code: "COP", symbol: "$",    name: "Colombian Peso",     flag: "🇨🇴" },
-  { code: "PEN", symbol: "S/.",  name: "Peruvian Sol",       flag: "🇵🇪" },
-  { code: "NGN", symbol: "₦",    name: "Nigerian Naira",     flag: "🇳🇬" },
-  { code: "ZAR", symbol: "R",    name: "South African Rand", flag: "🇿🇦" },
-  { code: "KES", symbol: "KSh",  name: "Kenyan Shilling",    flag: "🇰🇪" },
-  { code: "GHS", symbol: "₵",    name: "Ghanaian Cedi",      flag: "🇬🇭" },
-  { code: "EGP", symbol: "E£",   name: "Egyptian Pound",     flag: "🇪🇬" },
-  { code: "MAD", symbol: "د.م.", name: "Moroccan Dirham",    flag: "🇲🇦" },
-  { code: "TZS", symbol: "TSh",  name: "Tanzanian Shilling", flag: "🇹🇿" },
-  { code: "TRY", symbol: "₺",    name: "Turkish Lira",       flag: "🇹🇷" },
-  { code: "CHF", symbol: "CHF",  name: "Swiss Franc",        flag: "🇨🇭" },
-  { code: "SEK", symbol: "kr",   name: "Swedish Krona",      flag: "🇸🇪" },
-  { code: "NOK", symbol: "kr",   name: "Norwegian Krone",    flag: "🇳🇴" },
-  { code: "DKK", symbol: "kr",   name: "Danish Krone",       flag: "🇩🇰" },
-  { code: "PLN", symbol: "zł",   name: "Polish Złoty",       flag: "🇵🇱" },
-  { code: "CZK", symbol: "Kč",   name: "Czech Koruna",       flag: "🇨🇿" },
-  { code: "HUF", symbol: "Ft",   name: "Hungarian Forint",   flag: "🇭🇺" },
-  { code: "RON", symbol: "lei",  name: "Romanian Leu",       flag: "🇷🇴" },
-  { code: "UAH", symbol: "₴",    name: "Ukrainian Hryvnia",  flag: "🇺🇦" },
-  { code: "RUB", symbol: "₽",    name: "Russian Ruble",      flag: "🇷🇺" },
-  { code: "ILS", symbol: "₪",    name: "Israeli Shekel",     flag: "🇮🇱" },
-  { code: "LKR", symbol: "Rs",   name: "Sri Lankan Rupee",   flag: "🇱🇰" },
-  { code: "NPR", symbol: "Rs",   name: "Nepalese Rupee",     flag: "🇳🇵" },
-  { code: "MMK", symbol: "K",    name: "Myanmar Kyat",       flag: "🇲🇲" },
-  { code: "KHR", symbol: "៛",    name: "Cambodian Riel",     flag: "🇰🇭" },
-  { code: "MNT", symbol: "₮",    name: "Mongolian Tögrög",   flag: "🇲🇳" },
-  { code: "XOF", symbol: "CFA",  name: "West African CFA",   flag: "🌍" },
-  { code: "XAF", symbol: "CFA",  name: "Central African CFA",flag: "🌍" },
-];
 
 export default function EventDetail() {
   const [match, params] = useRoute("/events/:id");
@@ -141,9 +81,6 @@ export default function EventDetail() {
   const [isAddingGuest, setIsAddingGuest] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [isThemesModalOpen, setIsThemesModalOpen] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState("USD");
-  const [currencySearch, setCurrencySearch] = useState("");
-  const [showCurrencyPicker, setShowCurrencyPicker] = useState(true);
 
   // Edit form state
   const [title, setTitle] = useState("");
@@ -307,15 +244,12 @@ export default function EventDetail() {
         location: event?.location || "Unknown",
         attendeeCount: event?.maxAttendees || 50,
         durationHours: 4,
-        currency: selectedCurrency,
       } },
       {
         onSuccess: () => {
-          setShowCurrencyPicker(false);
           toast({ title: "Budget estimation complete" });
         },
         onError: (err) => {
-          setShowCurrencyPicker(true);
           toast({ title: "Estimation failed", description: err.error || "Unknown error", variant: "destructive" });
         }
       }
@@ -383,7 +317,7 @@ export default function EventDetail() {
           </div>
           
           <div className="flex items-center gap-2">
-            <Dialog open={isBudgetModalOpen} onOpenChange={(open) => { setIsBudgetModalOpen(open); if (!open) { setShowCurrencyPicker(true); setCurrencySearch(""); } }}>
+            <Dialog open={isBudgetModalOpen} onOpenChange={setIsBudgetModalOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="text-emerald-500 border-border hover:bg-emerald-500/10" data-testid="button-estimate-budget">
                   <DollarSign className="w-4 h-4 mr-2" />
@@ -398,55 +332,20 @@ export default function EventDetail() {
                   </DialogTitle>
                 </DialogHeader>
 
-                {/* ── Currency picker (shown before result) ── */}
-                {showCurrencyPicker && !estimateBudget.isPending && (
-                  <div className="space-y-4 py-2">
-                    <div>
-                      <p className="text-sm font-semibold mb-1">Select currency</p>
-                      <p className="text-xs text-muted-foreground mb-3">The AI will estimate costs in local market rates for the chosen currency.</p>
-                      <Input
-                        placeholder="Search currency (e.g. BDT, Euro, Rupee…)"
-                        value={currencySearch}
-                        onChange={(e) => setCurrencySearch(e.target.value)}
-                        className="mb-3"
-                      />
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-1">
-                        {CURRENCIES.filter(c =>
-                          !currencySearch ||
-                          c.code.toLowerCase().includes(currencySearch.toLowerCase()) ||
-                          c.name.toLowerCase().includes(currencySearch.toLowerCase()) ||
-                          c.symbol.includes(currencySearch)
-                        ).map((c) => (
-                          <button
-                            key={c.code}
-                            type="button"
-                            onClick={() => setSelectedCurrency(c.code)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left transition-all text-sm ${
-                              selectedCurrency === c.code
-                                ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold"
-                                : "border-border bg-card hover:border-emerald-500/40 hover:bg-emerald-500/5"
-                            }`}
-                          >
-                            <span className="text-base">{c.flag}</span>
-                            <span className="font-bold text-xs">{c.code}</span>
-                            <span className="text-muted-foreground text-xs truncate">{c.symbol}</span>
-                          </button>
-                        ))}
-                      </div>
+                {/* ── Idle state – generate button ── */}
+                {!estimateBudget.isPending && !estimateBudget.data && (
+                  <div className="flex flex-col items-center justify-center py-10 space-y-4">
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)" }}>
+                      <DollarSign className="w-7 h-7 text-emerald-500" />
                     </div>
-
-                    {/* Selected currency chip */}
-                    <div className="flex items-center gap-2 p-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5">
-                      <span className="text-lg">{CURRENCIES.find(c => c.code === selectedCurrency)?.flag}</span>
-                      <div>
-                        <p className="text-sm font-bold">{selectedCurrency} — {CURRENCIES.find(c => c.code === selectedCurrency)?.name}</p>
-                        <p className="text-xs text-muted-foreground">Symbol: {CURRENCIES.find(c => c.code === selectedCurrency)?.symbol}</p>
-                      </div>
-                      <Button size="sm" className="ml-auto bg-emerald-600 hover:bg-emerald-700 text-white" onClick={handleEstimateBudget} data-testid="button-run-budget-estimate">
-                        <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                        Generate Estimate
-                      </Button>
+                    <div className="text-center">
+                      <p className="font-semibold text-sm mb-1">Get an AI-powered USD estimate</p>
+                      <p className="text-xs text-muted-foreground">The AI will analyse your event details and produce a full cost breakdown in USD.</p>
                     </div>
+                    <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2" onClick={handleEstimateBudget} data-testid="button-run-budget-estimate">
+                      <Sparkles className="w-4 h-4" />
+                      Generate Estimate
+                    </Button>
                   </div>
                 )}
 
@@ -454,34 +353,25 @@ export default function EventDetail() {
                 {estimateBudget.isPending && (
                   <div className="flex flex-col items-center justify-center py-10 space-y-4">
                     <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-                    <p className="text-muted-foreground text-sm">Analyzing market rates in {selectedCurrency}…</p>
+                    <p className="text-muted-foreground text-sm">Analysing your event and estimating costs in USD…</p>
                   </div>
                 )}
 
                 {/* ── Results ── */}
-                {!showCurrencyPicker && !estimateBudget.isPending && estimateBudget.data && (
+                {!estimateBudget.isPending && estimateBudget.data && (
                   <div className="space-y-5 py-2">
                     {/* Total header */}
                     <div className="flex items-start justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
                       <div>
-                        <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Estimated Total</p>
+                        <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Estimated Total (USD)</p>
                         <h3 className="text-3xl font-bold mt-1 text-emerald-700 dark:text-emerald-300">
-                          {CURRENCIES.find(c => c.code === estimateBudget.data!.currency)?.symbol ?? estimateBudget.data.currency}{" "}
-                          {estimateBudget.data.totalEstimate.toLocaleString()}
+                          ${estimateBudget.data.totalEstimate.toLocaleString()}
                         </h3>
-                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                          <span>{CURRENCIES.find(c => c.code === estimateBudget.data!.currency)?.flag}</span>
-                          {estimateBudget.data.currency} — {CURRENCIES.find(c => c.code === estimateBudget.data!.currency)?.name ?? estimateBudget.data.currency}
-                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">🇺🇸 United States Dollar</p>
                       </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <Badge variant="outline" className={`bg-background capitalize ${estimateBudget.data.confidence === "high" ? "text-emerald-600 border-emerald-400" : estimateBudget.data.confidence === "medium" ? "text-amber-600 border-amber-400" : "text-red-600 border-red-400"}`}>
-                          {estimateBudget.data.confidence} confidence
-                        </Badge>
-                        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground" onClick={() => { setShowCurrencyPicker(true); setCurrencySearch(""); }}>
-                          Change currency
-                        </Button>
-                      </div>
+                      <Badge variant="outline" className={`bg-background capitalize ${estimateBudget.data.confidence === "high" ? "text-emerald-600 border-emerald-400" : estimateBudget.data.confidence === "medium" ? "text-amber-600 border-amber-400" : "text-red-600 border-red-400"}`}>
+                        {estimateBudget.data.confidence} confidence
+                      </Badge>
                     </div>
 
                     {/* Breakdown rows */}
@@ -492,11 +382,9 @@ export default function EventDetail() {
                           <div className="flex justify-between items-center">
                             <span className="font-medium text-sm">{item.category}</span>
                             <span className="font-semibold text-sm text-emerald-600 dark:text-emerald-400">
-                              {CURRENCIES.find(c => c.code === estimateBudget.data!.currency)?.symbol ?? estimateBudget.data!.currency}{" "}
-                              {item.amount.toLocaleString()} &nbsp;<span className="text-muted-foreground font-normal">({item.percentage}%)</span>
+                              ${item.amount.toLocaleString()} <span className="text-muted-foreground font-normal">({item.percentage}%)</span>
                             </span>
                           </div>
-                          {/* mini progress bar */}
                           <div className="h-1 rounded-full bg-muted overflow-hidden">
                             <div className="h-full rounded-full bg-emerald-500/70" style={{ width: `${item.percentage}%` }} />
                           </div>

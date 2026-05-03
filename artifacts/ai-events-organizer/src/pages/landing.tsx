@@ -282,7 +282,7 @@ export default function Landing() {
 
         {/* ── FLOATING PANELS ── */}
         {/* left top – AI Generating */}
-        <motion.div style={{ x:panelX, y:panelY }} animate={{ y:[0,-16,0] }} transition={{ duration:5.5,repeat:Infinity,ease:"easeInOut" }} className="hidden lg:block absolute left-[5%] top-[20%]">
+        <motion.div style={{ x:panelX, y:panelY }} animate={{ y:[0,-16,0] }} transition={{ duration:5.5,repeat:Infinity,ease:"easeInOut" }} className="hidden md:block absolute left-[5%] top-[20%]">
           <Tilt3D depth={10}>
             <div className="w-56 rounded-2xl p-4 border shadow-2xl" style={{ background:"rgba(12,16,26,0.92)", borderColor:"rgba(99,102,241,0.32)", backdropFilter:"blur(18px)", boxShadow:"0 0 50px rgba(99,102,241,0.14),0 24px 48px rgba(0,0,0,0.5)" }}>
               <div className="flex items-center gap-2 mb-4"><div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{background:"rgba(99,102,241,0.2)"}}><Brain className="w-3.5 h-3.5 text-indigo-400"/></div><span className="text-[12px] font-bold text-white/80">AI Generating</span><div className="ml-auto flex gap-0.5">{[0.3,0.6,0.9].map((d,i)=><motion.div key={i} className="w-1 h-1 rounded-full bg-indigo-400" animate={{opacity:[0.2,1,0.2]}} transition={{duration:1.3,delay:d,repeat:Infinity}}/>)}</div></div>
@@ -294,7 +294,7 @@ export default function Landing() {
         </motion.div>
 
         {/* right top – Analytics */}
-        <motion.div style={{ x:panelXR, y:panelY }} animate={{ y:[0,14,0] }} transition={{ duration:6.5,repeat:Infinity,ease:"easeInOut",delay:0.8 }} className="hidden lg:block absolute right-[5%] top-[18%]">
+        <motion.div style={{ x:panelXR, y:panelY }} animate={{ y:[0,14,0] }} transition={{ duration:6.5,repeat:Infinity,ease:"easeInOut",delay:0.8 }} className="hidden md:block absolute right-[5%] top-[18%]">
           <Tilt3D depth={10}>
             <div className="w-62 rounded-2xl p-4 border shadow-2xl" style={{ background:"rgba(12,16,26,0.92)", borderColor:"rgba(16,185,129,0.32)", backdropFilter:"blur(18px)", boxShadow:"0 0 50px rgba(16,185,129,0.12),0 24px 48px rgba(0,0,0,0.5)" }}>
               <div className="flex items-center justify-between mb-3"><span className="text-[12px] font-bold text-white/80">Attendance</span><span className="text-[11px] text-emerald-400 font-bold">+38% ↑</span></div>
@@ -305,7 +305,7 @@ export default function Landing() {
         </motion.div>
 
         {/* left bottom – Guest RSVPs */}
-        <motion.div style={{ x:panelX }} animate={{ y:[0,12,0] }} transition={{ duration:7,repeat:Infinity,ease:"easeInOut",delay:1.3 }} className="hidden xl:block absolute left-[7%] bottom-[18%]">
+        <motion.div style={{ x:panelX }} animate={{ y:[0,12,0] }} transition={{ duration:7,repeat:Infinity,ease:"easeInOut",delay:1.3 }} className="hidden lg:block absolute left-[7%] bottom-[18%]">
           <Tilt3D depth={9}>
             <div className="w-54 rounded-2xl p-4 border shadow-2xl" style={{ background:"rgba(12,16,26,0.92)", borderColor:"rgba(6,182,212,0.32)", backdropFilter:"blur(18px)", boxShadow:"0 0 50px rgba(6,182,212,0.12),0 24px 48px rgba(0,0,0,0.5)" }}>
               <p className="text-[12px] font-bold text-white/75 mb-3 flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-cyan-400"/>Guest RSVPs</p>
@@ -321,7 +321,7 @@ export default function Landing() {
         </motion.div>
 
         {/* right bottom – Budget */}
-        <motion.div style={{ x:panelXR }} animate={{ y:[0,-12,0] }} transition={{ duration:8,repeat:Infinity,ease:"easeInOut",delay:2.2 }} className="hidden xl:block absolute right-[6%] bottom-[16%]">
+        <motion.div style={{ x:panelXR }} animate={{ y:[0,-12,0] }} transition={{ duration:8,repeat:Infinity,ease:"easeInOut",delay:2.2 }} className="hidden lg:block absolute right-[6%] bottom-[16%]">
           <Tilt3D depth={9}>
             <div className="w-54 rounded-2xl p-4 border shadow-2xl" style={{ background:"rgba(12,16,26,0.92)", borderColor:"rgba(245,158,11,0.32)", backdropFilter:"blur(18px)", boxShadow:"0 0 50px rgba(245,158,11,0.12),0 24px 48px rgba(0,0,0,0.5)" }}>
               <p className="text-[12px] font-bold text-white/75 mb-2 flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5 text-amber-400"/>Budget Estimate</p>
@@ -339,7 +339,7 @@ export default function Landing() {
 
         {/* ── Central 3D Dashboard Mockup ── */}
         <motion.div
-          className="hidden xl:block absolute"
+          className="hidden lg:block absolute"
           style={{ bottom: "8%", left: "50%", x: "-50%", zIndex: 2 }}
           animate={{ y: [0, -8, 0] }}
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
