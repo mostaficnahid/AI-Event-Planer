@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Loader2, Plus, Folder } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,6 +56,7 @@ export default function CategoriesList() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Create Category</DialogTitle>
+                <DialogDescription>Add a new category to organize your events.</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 pt-4">
                 <div className="space-y-2">
