@@ -10,6 +10,7 @@ import {
   Moon,
   Sun,
   ChevronRight,
+  Home,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,8 @@ export function Layout({ children }: LayoutProps) {
   const { theme, setTheme } = useTheme();
   const logoutMutation = useLogout();
 
+  const isAttendee = user?.role === "attendee";
+
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
       onSettled: () => {
@@ -46,7 +49,7 @@ export function Layout({ children }: LayoutProps) {
   };
 
   const initials = user?.name
-    ? user.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    ? user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
     : "??";
 
   return (
@@ -54,30 +57,33 @@ export function Layout({ children }: LayoutProps) {
       {/* ── Sidebar ── */}
       <aside className="w-60 flex-shrink-0 border-r border-border flex flex-col hidden md:flex" style={{ background: "hsl(var(--card))" }}>
 
-        {/* Logo */}
+        {/* Logo — always links back to landing page */}
         <div className="h-16 flex items-center px-5 border-b border-border shrink-0">
-          <Link href="/dashboard">
-            <div className="flex items-center gap-2.5 cursor-pointer select-none">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm shrink-0" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(262 83% 58%))" }}>
+          <Link href="/">
+            <div className="flex items-center gap-2.5 cursor-pointer select-none group">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm shrink-0 transition-opacity group-hover:opacity-80" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(262 83% 58%))" }}>
                 <CalendarDays className="w-4 h-4 text-white" />
               </div>
-              <span className="font-bold text-[15px] tracking-tight">AI Events</span>
+              <span className="font-bold text-[15px] tracking-tight group-hover:text-primary transition-colors">AI Events</span>
             </div>
           </Link>
         </div>
 
         {/* Nav */}
         <nav className="flex-1 flex flex-col gap-0.5 px-3 pt-4 pb-2 overflow-y-auto">
-          <Link href="/events/new">
-            <Button
-              className="w-full justify-center gap-2 mb-4 h-9 text-sm font-semibold shadow-sm"
-              data-testid="button-new-event-sidebar"
-              style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(262 83% 58%))" }}
-            >
-              <Plus className="w-4 h-4" />
-              New Event
-            </Button>
-          </Link>
+          {/* New Event — hidden for attendees */}
+          {!isAttendee && (
+            <Link href="/events/new">
+              <Button
+                className="w-full justify-center gap-2 mb-4 h-9 text-sm font-semibold shadow-sm"
+                data-testid="button-new-event-sidebar"
+                style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(262 83% 58%))" }}
+              >
+                <Plus className="w-4 h-4" />
+                New Event
+              </Button>
+            </Link>
+          )}
 
           <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 px-2 mb-1.5">
             Navigation
@@ -117,6 +123,16 @@ export function Layout({ children }: LayoutProps) {
               </Link>
             );
           })}
+
+          {/* Back to landing page */}
+          <div className="mt-auto pt-2">
+            <Link href="/">
+              <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-150 cursor-pointer">
+                <Home className="w-4 h-4 shrink-0 text-muted-foreground/70" />
+                <span className="flex-1">Back to Home</span>
+              </div>
+            </Link>
+          </div>
         </nav>
 
         {/* Bottom: user + controls */}
@@ -192,17 +208,22 @@ export function Layout({ children }: LayoutProps) {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile header */}
         <header className="h-14 flex items-center justify-between px-4 border-b border-border shrink-0 md:hidden" style={{ background: "hsl(var(--card))" }}>
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(262 83% 58%))" }}>
-              <CalendarDays className="w-3.5 h-3.5 text-white" />
+          <Link href="/">
+            <div className="flex items-center gap-2 cursor-pointer group">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(262 83% 58%))" }}>
+                <CalendarDays className="w-3.5 h-3.5 text-white" />
+              </div>
+              <span className="font-bold text-sm tracking-tight group-hover:text-primary transition-colors">AI Events</span>
             </div>
-            <span className="font-bold text-sm tracking-tight">AI Events</span>
-          </div>
-          <Link href="/events/new">
-            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-              <Plus className="w-4 h-4" />
-            </Button>
           </Link>
+          {/* Mobile New Event — hidden for attendees */}
+          {!isAttendee && (
+            <Link href="/events/new">
+              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </Link>
+          )}
         </header>
 
         <div className="flex-1 overflow-y-auto">

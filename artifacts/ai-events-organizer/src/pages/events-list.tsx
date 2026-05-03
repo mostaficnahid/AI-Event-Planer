@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/utils";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth";
 
 const statusStyle: Record<string, string> = {
   published: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
@@ -21,6 +22,8 @@ export default function EventsList() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [status, setStatus] = useState("all");
+  const { user } = useAuth();
+  const isAttendee = user?.role === "attendee";
 
   const { data: events, isLoading } = useListEvents({
     search: search || undefined,
@@ -42,11 +45,13 @@ export default function EventsList() {
               {isLoading ? "Loading…" : `${events?.length ?? 0} event${events?.length === 1 ? "" : "s"}`}
             </p>
           </div>
-          <Link href="/events/new">
-            <Button data-testid="button-create-event" size="sm" className="gap-1.5 h-9 font-semibold shadow-sm">
-              <Plus className="w-3.5 h-3.5" /> New Event
-            </Button>
-          </Link>
+          {!isAttendee && (
+            <Link href="/events/new">
+              <Button data-testid="button-create-event" size="sm" className="gap-1.5 h-9 font-semibold shadow-sm">
+                <Plus className="w-3.5 h-3.5" /> New Event
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Filter bar */}
