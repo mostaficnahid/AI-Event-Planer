@@ -666,10 +666,12 @@ export default function Landing() {
       {/* ══ FOOTER ══ */}
       <footer className="border-t px-6 py-10" style={{borderColor:"rgba(255,255,255,0.06)"}}>
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{background:"linear-gradient(135deg,#6366f1,#8b5cf6)"}}><CalendarDays className="w-3.5 h-3.5 text-white"/></div>
-            <span className="font-bold text-[13px] tracking-tight" style={{color:"rgba(255,255,255,0.7)"}}>AI Events Organizer</span>
-          </div>
+          <Link href="/">
+            <div className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{background:"linear-gradient(135deg,#6366f1,#8b5cf6)"}}><CalendarDays className="w-3.5 h-3.5 text-white"/></div>
+              <span className="font-bold text-[13px] tracking-tight" style={{color:"rgba(255,255,255,0.7)"}}>AI Events Organizer</span>
+            </div>
+          </Link>
           <p className="text-[11px]" style={{color:"rgba(255,255,255,0.22)"}}>Built with React, Vite, Express, PostgreSQL & OpenAI GPT-5. {new Date().getFullYear()}.</p>
           <div className="flex gap-6 text-[12px]" style={{color:"rgba(255,255,255,0.32)"}}>
             <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>

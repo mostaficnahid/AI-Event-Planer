@@ -75,7 +75,7 @@ export function Layout({ children }: LayoutProps) {
           {!isAttendee && (
             <Link href="/events/new">
               <Button
-                className="w-full justify-center gap-2 mb-4 h-9 text-sm font-semibold shadow-sm"
+                className="w-full justify-center gap-2 mb-3 h-9 text-sm font-semibold shadow-sm"
                 data-testid="button-new-event-sidebar"
                 style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(262 83% 58%))" }}
               >
@@ -84,6 +84,18 @@ export function Layout({ children }: LayoutProps) {
               </Button>
             </Link>
           )}
+
+          {/* Back to Landing Page — always visible */}
+          <Link href="/">
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-2 mb-3 h-9 text-sm font-medium"
+              data-testid="button-home-sidebar"
+            >
+              <Home className="w-4 h-4" />
+              Back to Home
+            </Button>
+          </Link>
 
           <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 px-2 mb-1.5">
             Navigation
@@ -124,15 +136,6 @@ export function Layout({ children }: LayoutProps) {
             );
           })}
 
-          {/* Back to landing page */}
-          <div className="mt-auto pt-2">
-            <Link href="/">
-              <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-150 cursor-pointer">
-                <Home className="w-4 h-4 shrink-0 text-muted-foreground/70" />
-                <span className="flex-1">Back to Home</span>
-              </div>
-            </Link>
-          </div>
         </nav>
 
         {/* Bottom: user + controls */}
