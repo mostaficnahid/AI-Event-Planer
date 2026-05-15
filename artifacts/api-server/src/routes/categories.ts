@@ -5,6 +5,7 @@ import {
   ListCategoriesResponse,
 } from "@workspace/api-zod";
 import { eq, sql } from "drizzle-orm";
+import { requireAuth, requireRole } from "../lib/auth";
 
 const router: IRouter = Router();
 
@@ -24,19 +25,24 @@ router.get("/categories", async (req, res): Promise<void> => {
   res.json(ListCategoriesResponse.parse(withCounts));
 });
 
-router.post("/categories", async (req, res): Promise<void> => {
-  const parsed = CreateCategoryBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
+router.post(
+  "/categories",
+  requireAuth,
+  requireRole("admin", "organizer"),
+  async (req, res): Promise<void> => {
+    const parsed = CreateCategoryBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+
+    const [cat] = await db
+      .insert(categoriesTable)
+      .values(parsed.data)
+      .returning();
+
+    res.status(201).json({ ...cat, eventCount: 0 });
   }
-
-  const [cat] = await db
-    .insert(categoriesTable)
-    .values(parsed.data)
-    .returning();
-
-  res.status(201).json({ ...cat, eventCount: 0 });
-});
+);
 
 export default router;

@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { UpdateMeBody, ListUsersResponse } from "@workspace/api-zod";
-import { requireAuth, type AuthRequest } from "../lib/auth";
+import { requireAuth, requireRole, type AuthRequest } from "../lib/auth";
 
 const router: IRouter = Router();
 
@@ -45,7 +45,7 @@ router.patch("/users/me", requireAuth, async (req: AuthRequest, res): Promise<vo
   });
 });
 
-router.get("/users", requireAuth, async (_req, res): Promise<void> => {
+router.get("/users", requireAuth, requireRole("admin"), async (_req, res): Promise<void> => {
   const users = await db.select().from(usersTable);
   const mapped = users.map(u => ({
     id: u.id,

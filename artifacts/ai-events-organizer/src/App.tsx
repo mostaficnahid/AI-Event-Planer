@@ -19,13 +19,22 @@ import AiAssistant from "@/pages/ai-assistant";
 
 const queryClient = new QueryClient();
 
-/* Redirects to /login when not authenticated, preserving the intended path */
-function ProtectedRoute({ component: Component }: { component: React.ComponentType<any> }) {
+function ProtectedRoute({
+  component: Component,
+  allowedRoles,
+}: {
+  component: React.ComponentType<any>;
+  allowedRoles?: string[];
+}) {
   const { user } = useAuth();
   const [location] = useLocation();
 
   if (!user) {
     return <Redirect to={`/login?next=${encodeURIComponent(location)}`} />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Redirect to="/dashboard" />;
   }
 
   return <Component />;
@@ -47,19 +56,19 @@ function Router() {
         <ProtectedRoute component={EventsList} />
       </Route>
       <Route path="/events/new">
-        <ProtectedRoute component={EventNew} />
+        <ProtectedRoute component={EventNew} allowedRoles={["admin", "organizer"]} />
       </Route>
       <Route path="/events/:id">
         <ProtectedRoute component={EventDetail} />
       </Route>
       <Route path="/categories">
-        <ProtectedRoute component={CategoriesList} />
+        <ProtectedRoute component={CategoriesList} allowedRoles={["admin", "organizer"]} />
       </Route>
       <Route path="/profile">
         <ProtectedRoute component={Profile} />
       </Route>
       <Route path="/ai-assistant">
-        <ProtectedRoute component={AiAssistant} />
+        <ProtectedRoute component={AiAssistant} allowedRoles={["admin", "organizer"]} />
       </Route>
 
       <Route component={NotFound} />

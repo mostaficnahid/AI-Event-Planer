@@ -11,9 +11,13 @@ import {
   Sun,
   ChevronRight,
   Home,
+  ShieldCheck,
+  Zap,
+  Ticket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useHealthCheck, useLogout } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/auth";
 import { useTheme } from "@/contexts/theme";
@@ -23,12 +27,38 @@ interface LayoutProps {
   children: ReactNode;
 }
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/events", label: "Events", icon: CalendarDays },
-  { href: "/categories", label: "Categories", icon: Tags },
-  { href: "/ai-assistant", label: "AI Assistant", icon: Bot },
-];
+const roleMeta = {
+  admin: {
+    label: "Admin",
+    icon: ShieldCheck,
+    badge: "bg-amber-500/10 text-amber-500 border-amber-500/30",
+    navItems: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/events", label: "Events", icon: CalendarDays },
+      { href: "/categories", label: "Categories", icon: Tags },
+      { href: "/ai-assistant", label: "AI Assistant", icon: Bot },
+    ],
+  },
+  organizer: {
+    label: "Organizer",
+    icon: Zap,
+    badge: "bg-violet-500/10 text-violet-500 border-violet-500/30",
+    navItems: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/events", label: "Events", icon: CalendarDays },
+      { href: "/ai-assistant", label: "AI Assistant", icon: Bot },
+    ],
+  },
+  attendee: {
+    label: "Attendee",
+    icon: Ticket,
+    badge: "bg-cyan-500/10 text-cyan-500 border-cyan-500/30",
+    navItems: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/events", label: "Browse Events", icon: CalendarDays },
+    ],
+  },
+};
 
 export function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
@@ -37,7 +67,11 @@ export function Layout({ children }: LayoutProps) {
   const { theme, setTheme } = useTheme();
   const logoutMutation = useLogout();
 
-  const isAttendee = user?.role === "attendee";
+  const role = (user?.role ?? "attendee") as keyof typeof roleMeta;
+  const meta = roleMeta[role] ?? roleMeta.attendee;
+  const navItems = meta.navItems;
+  const isAttendee = role === "attendee";
+  const RoleIcon = meta.icon;
 
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
@@ -57,7 +91,7 @@ export function Layout({ children }: LayoutProps) {
       {/* ── Sidebar ── */}
       <aside className="w-60 flex-shrink-0 border-r border-border flex flex-col hidden md:flex" style={{ background: "hsl(var(--card))" }}>
 
-        {/* Logo — always links back to landing page */}
+        {/* Logo */}
         <div className="h-16 flex items-center px-5 border-b border-border shrink-0">
           <Link href="/">
             <div className="flex items-center gap-2.5 cursor-pointer select-none group">
@@ -85,7 +119,7 @@ export function Layout({ children }: LayoutProps) {
             </Link>
           )}
 
-          {/* Back to Landing Page — always visible */}
+          {/* Back to Landing Page */}
           <Link href="/">
             <Button
               variant="outline"
@@ -97,9 +131,14 @@ export function Layout({ children }: LayoutProps) {
             </Button>
           </Link>
 
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 px-2 mb-1.5">
-            Navigation
-          </p>
+          {/* Role indicator */}
+          <div className="flex items-center gap-2 px-2 py-2 mb-1.5 rounded-lg" style={{ background: "hsl(var(--muted)/0.4)" }}>
+            <RoleIcon className="w-3.5 h-3.5 shrink-0" style={{ color: role === "admin" ? "#f59e0b" : role === "organizer" ? "#8b5cf6" : "#06b6d4" }} />
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/70 flex-1">{meta.label} Panel</span>
+            <Badge variant="outline" className={cn("text-[9px] px-1.5 py-0 h-4 font-semibold capitalize border", meta.badge)}>
+              {meta.label}
+            </Badge>
+          </div>
 
           {navItems.map((item) => {
             const isActive =
@@ -135,7 +174,6 @@ export function Layout({ children }: LayoutProps) {
               </Link>
             );
           })}
-
         </nav>
 
         {/* Bottom: user + controls */}
@@ -155,7 +193,9 @@ export function Layout({ children }: LayoutProps) {
                   </Avatar>
                   <div className="flex flex-col overflow-hidden min-w-0">
                     <span className="text-[13px] font-semibold truncate leading-snug">{user.name}</span>
-                    <span className="text-[11px] text-muted-foreground capitalize leading-snug">{user.role}</span>
+                    <span className={cn("text-[10px] font-semibold capitalize leading-snug px-1.5 py-0 rounded w-fit border mt-0.5", meta.badge)}>
+                      {user.role}
+                    </span>
                   </div>
                 </div>
               </Link>
@@ -219,7 +259,6 @@ export function Layout({ children }: LayoutProps) {
               <span className="font-bold text-sm tracking-tight group-hover:text-primary transition-colors">AI Events</span>
             </div>
           </Link>
-          {/* Mobile New Event — hidden for attendees */}
           {!isAttendee && (
             <Link href="/events/new">
               <Button size="sm" variant="ghost" className="h-8 w-8 p-0">

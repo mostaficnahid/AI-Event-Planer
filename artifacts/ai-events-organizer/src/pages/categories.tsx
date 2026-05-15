@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout";
 import { useListCategories, useCreateCategory, getListCategoriesQueryKey } from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -10,13 +10,17 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label";
 import { Loader2, Plus, Folder } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/auth";
 
 export default function CategoriesList() {
+  const { user } = useAuth();
+  const canManage = user?.role === "admin" || user?.role === "organizer";
+
   const { data: categories, isLoading } = useListCategories();
   const createCategory = useCreateCategory();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [color, setColor] = useState("#4f46e5");
@@ -46,65 +50,67 @@ export default function CategoriesList() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
-            <p className="text-muted-foreground mt-1">Manage event categories to organize your events.</p>
+            <p className="text-muted-foreground mt-1">Event categories used to organize your events.</p>
           </div>
-          
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button data-testid="button-new-category"><Plus className="w-4 h-4 mr-2"/> Add Category</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create Category</DialogTitle>
-                <DialogDescription>Add a new category to organize your events.</DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input 
-                    id="name" 
-                    value={name} 
-                    onChange={(e) => setName(e.target.value)} 
-                    required 
-                    placeholder="e.g. Conference, Meetup"
-                    data-testid="input-category-name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="color">Color</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      id="color" 
-                      type="color" 
-                      value={color} 
-                      onChange={(e) => setColor(e.target.value)} 
-                      className="w-16 p-1 h-10 cursor-pointer"
-                    />
-                    <Input 
-                      value={color} 
-                      onChange={(e) => setColor(e.target.value)} 
-                      className="flex-1 font-mono uppercase"
+
+          {canManage && (
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button data-testid="button-new-category"><Plus className="w-4 h-4 mr-2"/> Add Category</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create Category</DialogTitle>
+                  <DialogDescription>Add a new category to organize your events.</DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      placeholder="e.g. Conference, Meetup"
+                      data-testid="input-category-name"
                     />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="icon">Icon Name</Label>
-                  <Input 
-                    id="icon" 
-                    value={icon} 
-                    onChange={(e) => setIcon(e.target.value)} 
-                    placeholder="lucide icon name"
-                  />
-                </div>
-                <div className="flex justify-end pt-2">
-                  <Button type="submit" disabled={createCategory.isPending} data-testid="button-submit-category">
-                    {createCategory.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Create
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+                  <div className="space-y-2">
+                    <Label htmlFor="color">Color</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="color"
+                        type="color"
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                        className="w-16 p-1 h-10 cursor-pointer"
+                      />
+                      <Input
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                        className="flex-1 font-mono uppercase"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="icon">Icon Name</Label>
+                    <Input
+                      id="icon"
+                      value={icon}
+                      onChange={(e) => setIcon(e.target.value)}
+                      placeholder="lucide icon name"
+                    />
+                  </div>
+                  <div className="flex justify-end pt-2">
+                    <Button type="submit" disabled={createCategory.isPending} data-testid="button-submit-category">
+                      {createCategory.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      Create
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -114,7 +120,9 @@ export default function CategoriesList() {
             <div className="col-span-full flex flex-col items-center justify-center p-12 text-center border rounded-lg border-dashed bg-card/50">
               <Folder className="w-12 h-12 text-muted-foreground opacity-20 mb-4" />
               <h3 className="text-lg font-medium">No categories found</h3>
-              <p className="text-muted-foreground mt-2">Create a category to start organizing events.</p>
+              <p className="text-muted-foreground mt-2">
+                {canManage ? "Create a category to start organizing events." : "No categories have been created yet."}
+              </p>
             </div>
           ) : (
             categories?.map((cat) => (
@@ -125,11 +133,10 @@ export default function CategoriesList() {
                     <h3 className="font-semibold text-lg">{cat.name}</h3>
                     <p className="text-sm text-muted-foreground">{cat.eventCount} events</p>
                   </div>
-                  <div 
+                  <div
                     className="w-10 h-10 rounded-full flex items-center justify-center opacity-20"
                     style={{ backgroundColor: cat.color }}
-                  >
-                  </div>
+                  />
                 </CardContent>
               </Card>
             ))
