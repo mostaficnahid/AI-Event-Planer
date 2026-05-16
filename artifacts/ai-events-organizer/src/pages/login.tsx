@@ -124,25 +124,6 @@ export default function Login() {
             </Button>
           </form>
 
-          {/* Demo hint */}
-          <div className="mt-6 p-3.5 rounded-xl border border-border/50 bg-muted/20">
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Demo accounts</p>
-            <div className="space-y-1">
-              {[["admin@demo.com", "Admin"], ["alice@demo.com", "Organizer"], ["bob@demo.com", "Attendee"]].map(([email, role]) => (
-                <button
-                  key={email}
-                  type="button"
-                  onClick={() => { setEmail(email); setPassword("demo1234"); }}
-                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-muted/60 text-left transition-colors group"
-                >
-                  <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">{email}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{role}</span>
-                </button>
-              ))}
-            </div>
-            <p className="text-[10px] text-muted-foreground/50 mt-2 px-2">Password: <code className="font-mono">demo1234</code></p>
-          </div>
-
           <p className="text-center text-sm text-muted-foreground mt-6">
             Don't have an account?{" "}
             <Link href="/register" className="font-semibold text-primary hover:underline" data-testid="link-register">

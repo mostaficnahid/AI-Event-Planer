@@ -128,7 +128,6 @@ export default function Register() {
                 <SelectContent>
                   <SelectItem value="organizer">Event Organizer</SelectItem>
                   <SelectItem value="attendee">Attendee</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>

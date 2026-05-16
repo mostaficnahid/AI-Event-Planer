@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import {
   CalendarDays, Brain, Users, BarChart3, DollarSign,
   Sparkles, ArrowRight, Check, Zap, Globe, Shield,
-  ChevronRight, Star, Play, TrendingUp, Wand2, Bot,
+  ChevronRight, Star, TrendingUp, Wand2, Bot,
   MapPin, Clock, Activity, Eye, Lock, Cpu,
 } from "lucide-react";
 
@@ -400,14 +400,14 @@ export default function Landing() {
                 Start for free <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
-            <Link href="/dashboard">
-              <Button size="lg" variant="outline" data-testid="hero-dashboard" className="h-12 px-8 text-[15px] font-medium rounded-xl border-white/10 text-white/65 hover:text-white hover:border-white/22" style={{ backdropFilter:"blur(12px)", background:"rgba(255,255,255,0.04)" }}>
-                <Play className="w-4 h-4 mr-2 opacity-60" />View live demo
+            <Link href="/login">
+              <Button size="lg" variant="outline" data-testid="hero-login" className="h-12 px-8 text-[15px] font-medium rounded-xl border-white/10 text-white/65 hover:text-white hover:border-white/22" style={{ backdropFilter:"blur(12px)", background:"rgba(255,255,255,0.04)" }}>
+                Sign In
               </Button>
             </Link>
           </motion.div>
           <motion.p variants={fadeUp} className="text-[12px] mt-4" style={{ color:"rgba(255,255,255,0.24)" }}>
-            No credit card &nbsp;·&nbsp; 3 demo accounts &nbsp;·&nbsp; Sign In or Get Started above
+            No credit card required &nbsp;·&nbsp; Free to get started &nbsp;·&nbsp; Cancel anytime
           </motion.p>
         </motion.div>
 

@@ -2,11 +2,7 @@ import bcrypt from "bcryptjs";
 import { db, usersTable } from "./index";
 import { eq } from "drizzle-orm";
 
-const users = [
-  { name: "Admin User", email: "admin@demo.com", password: "demo1234", role: "admin" },
-  { name: "Alice Organizer", email: "alice@demo.com", password: "demo1234", role: "organizer" },
-  { name: "Bob Attendee", email: "bob@demo.com", password: "demo1234", role: "attendee" },
-];
+const users: Array<{ name: string; email: string; password: string; role: string }> = [];
 
 async function seedUsers() {
   for (const u of users) {
